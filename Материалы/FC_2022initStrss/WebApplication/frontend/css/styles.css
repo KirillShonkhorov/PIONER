@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Задаем минимальную высоту равную высоте окна браузера */
+    font-family: 'Roboto', sans-serif; /* Шрифт Roboto */
+    background-color: #f0f5f5; /* Светло-серый фон */
+    margin: 0;
+    padding: 0;
+    color: #333; /* Темный текст */
+}
+
+header {
+    background-color: #4caf50; /* Темно-зеленый */
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 5px solid #388e3c;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #cfd8dc; /* Светло-серый при наведении */
+}
+
+main {
+    flex: 1;
+    color: #333;
+    background-color: #e0f2f1; /* Светло-зеленый */
+    padding: 20px;
+}
+
+h2 {
+    color: #333;
+    text-align: center;
+}
+
+.notification {
+    line-height: 1.5;
+    margin: 50px;
+    color: #ff3535;
+    text-align: center;
+}
+
+.container {
+    background-color: #aaddaa; /* Светло-серый */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.btn {
+    background-color: #2e7d32; /* Темно-зеленый */
+    color: #fff;
+    border: none;
+    padding: 15px; /* Увеличение размера кнопок */
+    border-radius: 8px; /* Более закругленные углы */
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #388e3c; /* Светло-зеленый при наведении */
+}
+
+footer {
+    background-color: #4caf50; /* Темно-зеленый */
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto:
+    bottom: 0;
+    width: 100%;
+    border-top: 5px solid #388e3c;
+    flex-shrink: 0;
+}
+
+/* Стили для div */
+.file {
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    background-color: #eee; /* Белый фон */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    max-width: 100%; /* Элемент занимает всю доступную ширину */
+    margin-left: auto; /* Центрирование блока */
+    margin-right: auto; /* Центрирование блока */
+}
+
+/* Стили для pre */
+.file pre {
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
+    overflow: auto; /* Появление полосы прокрутки при необходимости */
+}
+
+#error-container {
+    display: none; /* Скрыть контейнер по умолчанию */
+    background-color: #ffcccc; /* Цвет фона */
+    color: #990000; /* Цвет текста */
+    padding: 20px; /* Отступы внутри контейнера */
+    border: 2px solid #ff0000; /* Толщина и цвет границы */
+    border-radius: 5px; /* Закругленные углы */
+    text-align: center; /* Выравнивание текста по центру */
+}
+
+.file-data-container {
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    background-color: #eee; /* Белый фон */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    max-width: 100%; /* Элемент занимает всю доступную ширину */
+    max-height: 100%; /* Элемент занимает всю доступную ширину */
+    margin-left: auto; /* Центрирование блока */
+    margin-right: auto; /* Центрирование блока */
+}
+
+.file-data-container label {
+    display: block; /* Сделать метку блочным элементом */
+    margin-bottom: 5px; /* Отступ снизу метки */
+    font-size: 18px;
+    color: #333; /* Цвет текста */
+}
+
+.file-data-container input[type="text"],
+    textarea#file-content {
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    width: calc(100% - 42px); /* Ширина занимает всю доступную ширину за вычетом ширины скроллбара */
+    padding: 10px; /* Отступы внутри элемента */
+    border: 1px solid #ccc; /* Граница элемента */
+    border-radius: 5px; /* Закругленные углы */
+    box-sizing: border-box; /* Учитываем ширину границы в общей ширине элемента */
+    margin-bottom: 10px; /* Отступ снизу элемента */
+    font-family: Arial, sans-serif; /* Шрифт элемента */
+}
+
+textarea#file-content {
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    resize: both;
+    max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
+    overflow: auto; /* Появление полосы прокрутки при необходимости */
+    white-space: pre;
+}

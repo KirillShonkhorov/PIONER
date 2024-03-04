@@ -1,0 +1,293 @@
+import os
+import re
+import shutil
+import logging
+import subprocess
+import uvicorn
+import fastapi_jsonrpc as jsonrpc
+
+from typing import List, Dict
+from pydantic import BaseModel
+from fastapi import Body
+from Logger import Logger
+
+api_v1 = jsonrpc.Entrypoint('/api/v1/jsonrpc')
+
+
+class Error(jsonrpc.BaseError):
+    CODE = 5000
+    MESSAGE = 'JSON-RPC Server Error'
+
+    class DataModel(BaseModel):
+        details: str
+        status_code: int
+
+
+class BaseModelWithFileParsing(BaseModel):
+    @classmethod
+    def parse_file(cls, file_path: str, **kwargs) -> List['BaseModelWithFileParsing']:
+        data = []
+
+        with open(file_path, 'r') as file:
+            next(file)  # Пропускаем заголовок
+
+            for line in file:
+                values = [float(val) if val.replace('.', '', 1).isdigit() else int(val) for val in line.split()]
+                model_instance = cls(**dict(zip(cls.__annotations__, values)))
+                data.append(model_instance)
+
+        return data
+
+
+class Displacements(BaseModelWithFileParsing):
+    node: int
+    x: float
+    y: float
+    u: float
+    v: float
+
+
+class Stress(BaseModelWithFileParsing):
+    element: int
+    int_point: int
+    x: float
+    y: float
+    sigma_xx: float
+    sigma_yy: float
+    sigma_xy: float
+    sigma_zz: float
+    max_stress: float
+    interm_stress: float
+    min_stress: float
+    time: float
+
+
+class Failure(BaseModelWithFileParsing):
+    element: int
+    int_point: int
+    x: float
+    y: float
+    ind_failure: int
+    maximal_principal_stress_direction: float
+
+
+class ProcessOutputModel(BaseModel):
+    displacements: Dict[str, List[Displacements]]
+    stress: Dict[str, List[Stress]]
+    stress_rotated: Dict[str, List[Stress]]
+    failure: Dict[str, List[Failure]]
+
+
+class TemplatesOutputModel(BaseModel):
+    file_name: str
+    file_content: str
+
+
+class InInputTemplateModel(BaseModel):
+    fileName: str = Body(..., examples=["new_template.txt"])
+    fileContent: str = Body(..., examples=["content"])
+
+
+class InFileModel(BaseModel):
+    fileName: str = Body(..., examples=["full_input.txt"])
+
+
+class JSONRPC:
+    def __init__(self, local_ip='localhost', port=5000):
+        self.local_ip = local_ip
+        self.port = port
+
+    async def parse_process_output_data(self, result: ProcessOutputModel):
+        return
+
+    @staticmethod
+    async def save_input_template(in_file: InInputTemplateModel):
+        logging.debug("****Start processing the 'save_input_template' request****")
+
+        file_path = f"InputTemplates/{in_file.fileName}"
+
+        try:
+            with open(file_path, "w") as file:
+                file.write(in_file.fileContent)
+            logging.debug(f"The file '{file_path}' has been create: '{in_file.fileContent}'")
+            return None
+
+        except Exception as e:
+            logging.exception(f"Internal server error: {e}")
+            raise Error(data={'details': f'Internal server error: {e}', 'status_code': 505})
+        finally:
+            logging.debug("****Finish processing the 'save_input_template' request****")
+
+    @staticmethod
+    async def get_input_templates() -> Dict[str, str]:
+        logging.debug("****Start processing the 'get_input_templates' request****")
+        files_data = {}
+
+        try:
+            for filename in os.listdir("InputTemplates"):
+                file_path = os.path.join("InputTemplates", filename)
+                if os.path.isfile(file_path):
+                    logging.debug(f"{file_path} is file")
+                    with open(file_path, 'r') as file:
+                        file_content = file.read()
+                    logging.debug(f"The file '{file_path}' has been read: '{file_content}'")
+                    files_data[f"{filename}"] = file_content
+
+            return files_data
+
+        except Exception as e:
+            logging.exception(f"Internal server error: {e}")
+            raise Error(data={'details': f'Internal server error: {e}', 'status_code': 504})
+        finally:
+            logging.debug("****Finish processing the 'get_input_templates' request****")
+
+    async def run_selected_template(self, in_file: InFileModel) -> ProcessOutputModel:
+        logging.debug("****Start processing the 'run_selected_template' request****")
+
+        if await self.check_file(f"InputTemplates/{in_file.fileName}", 400, "run_selected_template"):
+            try:
+                # Открываем файл и читаем его содержимое
+                with open(f"InputTemplates/{in_file.fileName}", "r") as file:
+                    content = file.read()
+                logging.debug(f"The file 'InputTemplates/{in_file.fileName}' has been read: '{content}'")
+
+                # Сохраняем полученный результат в файл "input.txt"
+                with open("input.txt", "w") as output_file:
+                    output_file.write(content)
+                logging.debug(f"The file 'input.txt' has been create: '{content}'")
+
+                return await self.run_pioner()
+
+            except Exception as e:
+                logging.exception(f"Internal server error: {e}")
+                raise Error(data={'details': f'Internal server error: {e}', 'status_code': 503})
+            finally:
+                logging.debug("****Finish processing the 'run_selected_template' request****")
+
+    async def run_pioner(self) -> ProcessOutputModel:
+        logging.debug("****Start processing the 'run_pioner' request****")
+
+        if await self.check_file("input.txt", 500, "run_pioner"):
+            try:
+                await self.run_fc_2022initstrss()
+
+                displacements_data = await self.process_files_in_folder('Displacements', Displacements)
+                logging.debug('Displacements was read')
+
+                stress_data = await self.process_files_in_folder('Stress', Stress)
+                logging.debug('Stress was read')
+
+                stress_rotated_data = await self.process_files_in_folder('StressRotated', Stress)
+                logging.debug('StressRotated was read')
+
+                failure_data = await self.process_files_in_folder('Failure', Failure)
+                logging.debug('Failure was read')
+
+                result = ProcessOutputModel(
+                    displacements=displacements_data,
+                    stress=stress_data,
+                    stress_rotated=stress_rotated_data,
+                    failure=failure_data
+                )
+
+                logging.debug(f"Request have output: {result}")
+                return result
+
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Error while executing the process: {e}")
+                raise Error(data={'details': f'Error while executing the process: {e}', 'status_code': 501})
+            except Exception as e:
+                logging.exception(f"Internal server error: {e}")
+                raise Error(data={'details': f'Internal server error: {e}', 'status_code': 502})
+            finally:
+                logging.debug("****Finish processing the 'run_pioner' request****")
+
+    @staticmethod
+    async def check_file(fileName, status_code, request):
+        if not os.path.exists(fileName):
+            logging.error(f"The file '{fileName}' was not found. {status_code}")
+            logging.debug(f"****Finish processing the '{request}' request****")
+            raise Error(data={'details': f"The file '{fileName}' was not found", 'status_code': status_code})
+
+        return True
+
+    async def run_fc_2022initstrss(self):
+        await self.remove_files_and_folders()
+
+        logging.info('FC_2022initStrss.exe IS STARTED')
+        subprocess.run(['FC_2022initStrss.exe'], check=True)
+        logging.info('FC_2022initStrss.exe IS FINISHED')
+
+    @staticmethod
+    async def remove_files_and_folders():
+        items_to_remove = [
+            "iteration_statistic.txt",
+            "echo_output.txt",
+            "StressRotated",
+            "Stress",
+            "Patran",
+            "Failure",
+            "Displacements"
+        ]
+
+        for item_name in items_to_remove:
+            if os.path.exists(item_name):
+                try:
+                    if os.path.isfile(item_name):
+                        os.remove(item_name)
+                    else:
+                        shutil.rmtree(item_name)
+                    logging.info(f"{item_name} was deleted")
+                except Exception as e:
+                    logging.error(f"Error while deleting '{item_name}'. Exception: {e}")
+            else:
+                logging.info(f"{item_name} wasn't found")
+
+    @staticmethod
+    async def process_files_in_folder(folder: str, model_class: type) -> Dict[str, List[BaseModelWithFileParsing]]:
+        data = {}
+
+        files = sorted(os.listdir(folder), key=lambda x: int(re.search(r'\d+', x).group()))
+
+        for file_number, filename in enumerate(files, start=1):
+            if filename.startswith(f"{model_class.__name__}."):
+                file_path = os.path.join(folder, filename)
+                data[f"{model_class.__name__}.{file_number}"] = model_class.parse_file(file_path)
+
+        return data
+
+
+@api_v1.method(errors=[Error])
+async def run_selected_template(in_file: InFileModel) -> ProcessOutputModel:
+    return await json_rpc.run_selected_template(in_file)
+
+
+@api_v1.method(errors=[Error])
+async def run_pioner() -> ProcessOutputModel:
+    return await json_rpc.run_pioner()
+
+
+@api_v1.method(errors=[Error])
+async def get_input_templates() -> Dict[str, str]:
+    return await json_rpc.get_input_templates()
+
+
+@api_v1.method(errors=[Error])
+async def save_input_template(in_file: InInputTemplateModel):
+    return await json_rpc.save_input_template(in_file)
+
+
+@api_v1.method(errors=[Error])
+async def parse_process_output_data(result: ProcessOutputModel):
+    return await json_rpc.parse_process_output_data(result)
+
+
+if __name__ == '__main__':
+    logger = Logger("Log", "JSON-RPC_Server.log")
+    json_rpc = JSONRPC()
+
+    app = jsonrpc.API()
+    app.bind_entrypoint(api_v1)
+    logging.debug("*****************JSON-RPC server was started*****************")
+    uvicorn.run(app, host=json_rpc.local_ip, port=json_rpc.port, access_log=True)
+    logging.debug("*****************JSON-RPC server was stopped*****************")

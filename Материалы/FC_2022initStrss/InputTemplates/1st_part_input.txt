@@ -1,0 +1,19 @@
+[hed]
+[numnp 10][negl 5][negnl 5]
+[ivartime 5][Nste 10][Tstart 10][Tfinal 14][r_initial_delta_t 16][r_minimum_delta_t 15][r_maximum_delta_t 15]
+[Isref 5][Nutmre 5][Iequit 5][Itemax 5][Iteopt 5][Dtol 10][Ftol 10][Etol 10]
+{[n 10][id(1,n) 5][id(2,n) 5][x(n) 20][y(n) 20]}
+[nlcur 5][Nptm 5]
+{[k 5][npt 5]
+{[timv(k,npt) 20][rv(k,npt) 20]}}
+         0
+         2         0
+         2    1    1      10.0
+         4    1    1      10.0
+0
+    2         1    4    1    4    2    2   41    1    1
+    1      1.d0
+   3370000      0.45
+         1         1
+         4         2         1         3
+

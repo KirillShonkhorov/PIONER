@@ -1,0 +1,26 @@
+import logging
+import os
+
+
+class Logger:
+    def __init__(self, directory='Log', filename='JSON-RPC_Server.log',
+                 data_format='%(asctime)s [%(levelname)s]: %(message)s',
+                 date_format='%Y-%m-%d %H:%M:%S'):
+        self.directory = directory
+        self.filename = filename
+        self.full_path = os.path.join(self.directory, self.filename)
+        self.data_format = data_format
+        self.date_format = date_format
+
+        os.makedirs(self.directory, exist_ok=True)  # Создаем директорию, если её нет
+
+        self.setup_logger()
+
+    def setup_logger(self):
+        # Настройка логгера
+        logging.basicConfig(
+            filename=self.full_path,  # Имя файла для сохранения логов
+            level=logging.DEBUG,  # Уровень логирования
+            format=self.data_format,  # Формат сообщений
+            datefmt=self.date_format  # Формат времени
+        )
