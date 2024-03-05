@@ -91,7 +91,10 @@ class BffFastAPI:
                     }
                 }
 
-                rpc_data = str(await self.call_rpc("run_selected_template", in_params))
+                rpc_data = await self.call_rpc("run_selected_template", in_params)
+
+                print(rpc_data)
+
                 await websocket.send_text(rpc_data)
 
         except WebSocketDisconnect:
@@ -126,7 +129,7 @@ class BffFastAPI:
         }
 
         try:
-            response = httpx.post(url, json=loc_json_rpc, headers=headers, timeout=0.1)
+            response = httpx.post(url, json=loc_json_rpc, headers=headers)
             response.raise_for_status()
             response_data = response.json()
             logging.debug(f'Response for RPC was completed')

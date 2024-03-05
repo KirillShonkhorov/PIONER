@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -7,6 +8,10 @@ import uvicorn
 import fastapi_jsonrpc as jsonrpc
 
 from typing import List, Dict
+from bokeh.layouts import gridplot
+from bokeh.embed import components
+from bokeh.models import ColumnDataSource
+from bokeh.plotting import figure
 from pydantic import BaseModel
 from fastapi import Body
 from Logger import Logger
@@ -92,13 +97,49 @@ class InFileModel(BaseModel):
     fileName: str = Body(..., examples=["full_input.txt"])
 
 
+class BokehWriter:
+    @staticmethod
+    async def create_displacements_plot(displacements_data: Dict[str, List[Displacements]]):
+        plots = []
+        for filename, displacements_list in displacements_data.items():
+
+            # Swap third and fourth elements in 'x' and 'y'
+            swapped_x = [d.x for d in displacements_list]
+            swapped_y = [d.y for d in displacements_list]
+            swapped_x[2], swapped_x[3] = swapped_x[3], swapped_x[2]
+            swapped_y[2], swapped_y[3] = swapped_y[3], swapped_y[2]
+
+            source = ColumnDataSource(data=dict(
+                node=[d.node for d in displacements_list],
+                x=swapped_x,
+                y=swapped_y,
+                u=[d.u for d in displacements_list],
+                v=[d.v for d in displacements_list]
+            ))
+
+            p = figure(title=f"Displacements for {filename}", x_axis_label='X', y_axis_label='Y')
+            p.patch('x', 'y', source=source, fill_color="blue", line_color="black")
+            plots.append(p)
+
+        # Do not save to file, instead, get components
+        script, div = components(gridplot(plots, ncols=1))
+        return script, div
+
+    @classmethod
+    async def create_plots(cls, result: ProcessOutputModel) -> str:
+        script, div = await cls.create_displacements_plot(result.displacements)
+
+        script = script[44:-15]
+        div = div[5:-7]
+
+        json_data = json.dumps({"script": script, "div": div})
+        return json_data
+
+
 class JSONRPC:
     def __init__(self, local_ip='localhost', port=5000):
         self.local_ip = local_ip
         self.port = port
-
-    async def parse_process_output_data(self, result: ProcessOutputModel):
-        return
 
     @staticmethod
     async def save_input_template(in_file: InInputTemplateModel):
@@ -141,7 +182,7 @@ class JSONRPC:
         finally:
             logging.debug("****Finish processing the 'get_input_templates' request****")
 
-    async def run_selected_template(self, in_file: InFileModel) -> ProcessOutputModel:
+    async def run_selected_template(self, in_file: InFileModel) -> str:
         logging.debug("****Start processing the 'run_selected_template' request****")
 
         if await self.check_file(f"InputTemplates/{in_file.fileName}", 400, "run_selected_template"):
@@ -164,7 +205,7 @@ class JSONRPC:
             finally:
                 logging.debug("****Finish processing the 'run_selected_template' request****")
 
-    async def run_pioner(self) -> ProcessOutputModel:
+    async def run_pioner(self) -> str:
         logging.debug("****Start processing the 'run_pioner' request****")
 
         if await self.check_file("input.txt", 500, "run_pioner"):
@@ -190,8 +231,8 @@ class JSONRPC:
                     failure=failure_data
                 )
 
-                logging.debug(f"Request have output: {result}")
-                return result
+                logging.debug(f"Request have ProcessOutputModel: {result}")
+                return await BokehWriter.create_plots(result)
 
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error while executing the process: {e}")
@@ -258,12 +299,12 @@ class JSONRPC:
 
 
 @api_v1.method(errors=[Error])
-async def run_selected_template(in_file: InFileModel) -> ProcessOutputModel:
+async def run_selected_template(in_file: InFileModel) -> str:
     return await json_rpc.run_selected_template(in_file)
 
 
 @api_v1.method(errors=[Error])
-async def run_pioner() -> ProcessOutputModel:
+async def run_pioner() -> str:
     return await json_rpc.run_pioner()
 
 
@@ -275,11 +316,6 @@ async def get_input_templates() -> Dict[str, str]:
 @api_v1.method(errors=[Error])
 async def save_input_template(in_file: InInputTemplateModel):
     return await json_rpc.save_input_template(in_file)
-
-
-@api_v1.method(errors=[Error])
-async def parse_process_output_data(result: ProcessOutputModel):
-    return await json_rpc.parse_process_output_data(result)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,10 @@
 //const userPort = document.currentScript.getAttribute('data-user-port');
 //const webSocketURL = `ws://${userIP}:${userPort}/ws`;
 
+const getElement = id => document.getElementById(id);
+const notificationContainer = getElement('error-container');
+const notificationMsg = getElement('notification-msg');
+
 const webSocketURL = 'ws://localhost:8000/ws'
 
 var ws = new WebSocket(webSocketURL);
@@ -28,23 +32,35 @@ ws.onerror = async function(event) {
 
 // Обработчик события получения сообщения от сервера
 ws.onmessage = async function(event) {
-    try{
-        const messages = document.getElementById('messages');
-        const content = event.data;
+    try {
+        var messages = document.getElementById('messages')
+        var message = document.createElement('li')
 
-        if (content === 'clear') {
-            messages.innerHTML = '';
-        } else {
-            const message = document.createElement('li');
-            message.textContent = content;
-            messages.appendChild(message);
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-    }
-    catch(error){
-        handleError(error)
-    }
+        const data = JSON.parse(event.data);
+        const divAttributes = data.div;
 
+        const scriptElement = document.createElement('script');
+        scriptElement.innerHTML = data.script;
+        document.body.appendChild(scriptElement);
+
+        // Разбираем строку divAttributes и извлекаем атрибуты
+        const idMatch = divAttributes.match(/id="([^"]+)"/);
+        const dataRootIdMatch = divAttributes.match(/data-root-id="([^"]+)"/);
+        const styleMatch = divAttributes.match(/style="([^"]+)"/);
+
+        const divElement = document.createElement('div');
+
+        // Устанавливаем атрибуты извлеченных данных
+        if (idMatch) {divElement.setAttribute('id', idMatch[1]);}
+        if (dataRootIdMatch) {divElement.setAttribute('data-root-id', dataRootIdMatch[1]);}
+        if (styleMatch) {divElement.setAttribute('style', styleMatch[1]);}
+
+        message.appendChild(divElement);
+        messages.appendChild(message);
+
+    } catch (error) {
+        handleError(error);
+    }
 };
 
 ws.onclose =async function(event) {
