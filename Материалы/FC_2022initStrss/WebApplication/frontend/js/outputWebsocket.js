@@ -3,6 +3,8 @@
 //const webSocketURL = `ws://${userIP}:${userPort}/ws`;
 
 const getElement = id => document.getElementById(id);
+const messages = document.getElementById('messages')
+const message = document.createElement('li')
 const notificationContainer = getElement('error-container');
 const notificationMsg = getElement('notification-msg');
 
@@ -33,29 +35,48 @@ ws.onerror = async function(event) {
 // Обработчик события получения сообщения от сервера
 ws.onmessage = async function(event) {
     try {
-        var messages = document.getElementById('messages')
-        var message = document.createElement('li')
+
 
         const data = JSON.parse(event.data);
-        const divAttributes = data.div;
 
-        const scriptElement = document.createElement('script');
-        scriptElement.innerHTML = data.script;
-        document.body.appendChild(scriptElement);
+        const DisplacementsScriptElement = document.createElement('script');
+        DisplacementsScriptElement.innerHTML = data.displacements.scripts;
+        document.body.appendChild(DisplacementsScriptElement);
 
         // Разбираем строку divAttributes и извлекаем атрибуты
-        const idMatch = divAttributes.match(/id="([^"]+)"/);
-        const dataRootIdMatch = divAttributes.match(/data-root-id="([^"]+)"/);
-        const styleMatch = divAttributes.match(/style="([^"]+)"/);
+        const DisplacementsDivAttributes = data.displacements.divs
+        const DisplacementsIdMatch = DisplacementsDivAttributes.match(/id="([^"]+)"/);
+        const DisplacementsDataRootIdMatch = DisplacementsDivAttributes.match(/data-root-id="([^"]+)"/);
+        const DisplacementsStyleMatch = DisplacementsDivAttributes.match(/style="([^"]+)"/);
 
-        const divElement = document.createElement('div');
+        const DisplacementsDivElement = document.createElement('div');
 
         // Устанавливаем атрибуты извлеченных данных
-        if (idMatch) {divElement.setAttribute('id', idMatch[1]);}
-        if (dataRootIdMatch) {divElement.setAttribute('data-root-id', dataRootIdMatch[1]);}
-        if (styleMatch) {divElement.setAttribute('style', styleMatch[1]);}
+        if (DisplacementsIdMatch) {DisplacementsDivElement.setAttribute('id', DisplacementsIdMatch[1]);}
+        if (DisplacementsDataRootIdMatch) {DisplacementsDivElement.setAttribute('data-root-id', DisplacementsDataRootIdMatch[1]);}
+        if (DisplacementsStyleMatch) {DisplacementsDivElement.setAttribute('style', DisplacementsStyleMatch[1]);}
 
-        message.appendChild(divElement);
+        message.appendChild(DisplacementsDivElement);
+
+        const StressScriptElement = document.createElement('script');
+        StressScriptElement.innerHTML = data.stress.scripts;
+        document.body.appendChild(StressScriptElement);
+
+        // Разбираем строку divAttributes и извлекаем атрибуты
+        const StressDivAttributes = data.stress.divs
+        const StressIdMatch = StressDivAttributes.match(/id="([^"]+)"/);
+        const StressDataRootIdMatch = StressDivAttributes.match(/data-root-id="([^"]+)"/);
+        const StressStyleMatch = StressDivAttributes.match(/style="([^"]+)"/);
+
+        const StressDivElement = document.createElement('div');
+
+        // Устанавливаем атрибуты извлеченных данных
+        if (StressIdMatch) {StressDivElement.setAttribute('id', StressIdMatch[1]);}
+        if (StressDataRootIdMatch) {StressDivElement.setAttribute('data-root-id', StressDataRootIdMatch[1]);}
+        if (StressStyleMatch) {StressDivElement.setAttribute('style', StressStyleMatch[1]);}
+
+        message.appendChild(StressDivElement);
+
         messages.appendChild(message);
 
     } catch (error) {

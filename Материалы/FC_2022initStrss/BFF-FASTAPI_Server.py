@@ -6,9 +6,16 @@ from fastapi import FastAPI, WebSocket, Request
 from fastapi.websockets import WebSocketDisconnect, WebSocketState
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
 from Logger import Logger
 
 app = FastAPI()
+
+
+class ErrorModel(BaseModel):
+    details: str
+    status_code: int
 
 
 class ConnectionManager:
@@ -52,24 +59,40 @@ class BffFastAPI:
         self.port = port
         self.base_url = f"http://{local_ip}:5000/api/v1/jsonrpc/"
         self.templates = Jinja2Templates(directory="WebApplication/frontend/html")
+        app.mount("/static", StaticFiles(directory="WebApplication/frontend"), name="static")
 
     async def save_input_template(self, request: Request):
-        data = await request.json()
-        file_name = data.get("fileName")
-        file_content = data.get("fileContent")
+        try:
+            logging.debug("\t****Start processing the 'save_input_template' request****\t")
 
-        in_params = {
-            "in_file": {
-                "fileName": file_name,
-                "fileContent": file_content
+            data = await request.json()
+            file_name = data.get("fileName")
+            file_content = data.get("fileContent")
+
+            in_params = {
+                "in_file": {
+                    "fileName": file_name,
+                    "fileContent": file_content
+                }
             }
-        }
 
-        return await self.call_rpc("save_input_template", in_params)
+            return await self.call_rpc("save_input_template", in_params)
+
+        except Exception as error:
+            logging.exception(f"BFF-FASTAPI server error: {error}")
+            return ErrorModel(details=f"BFF-FASTAPI server error : {error}", status_code=501)
+        finally:
+            logging.debug("\t****Finish processing the 'save_input_template' request****\t")
 
     async def get_html(self, request: Request):
-        logging.debug("****'get_html' request completed****")
-        return self.templates.TemplateResponse("selectTemplate.html", {"request": request, "user_ip": self.local_ip, "user_port": self.port})
+        try:
+            logging.debug("\t****Start processing the 'get_html' request****\t")
+            return self.templates.TemplateResponse("selectTemplate.html", {"request": request, "user_ip": self.local_ip, "user_port": self.port})
+        except Exception as error:
+            logging.exception(f"BFF-FASTAPI server error: {error}")
+            return ErrorModel(details=f"BFF-FASTAPI server error : {error}", status_code=500)
+        finally:
+            logging.debug("\t****Finish processing the 'get_html' request****\t")
 
     async def websocket_endpoint(self, websocket: WebSocket):
         logging.debug("****Start processing the 'websocket_endpoint' request****")
@@ -105,47 +128,37 @@ class BffFastAPI:
         finally:
             logging.debug("****Finish processing the 'websocket_endpoint' request****")
 
-    async def change_iteration_count(self, filename, iteration_count):
-        in_params = {
-            "in_file": {
-                "fileName": filename
-            }
-        }
-
-        rpc_data = str(await self.call_rpc("get_output_data", in_params))
-        rpc_data = "Input parameter is not a string"
-
     async def call_rpc(self, method, in_params):
-        logging.debug(f"****Start processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'")
-
-        url = f"{self.base_url}{method}"
-        headers = {'content-type': 'application/json'}
-
-        loc_json_rpc = {
-            "jsonrpc": "2.0",
-            "id": "0",
-            "method": method,
-            "params": in_params
-        }
-
         try:
+            logging.debug(f"\t****Start processing the 'call_rpc' request.****\t\nMethod: '{method}'\nInput Params:\n'{in_params}'\n")
+
+            url = f"{self.base_url}{method}"
+            headers = {'content-type': 'application/json'}
+
+            loc_json_rpc = {
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": method,
+                "params": in_params
+            }
+
             response = httpx.post(url, json=loc_json_rpc, headers=headers)
             response.raise_for_status()
             response_data = response.json()
             logging.debug(f'Response for RPC was completed')
-        except Exception as e:
-            logging.error(f'RPC connection exception: {e}')
-            logging.debug(f"****Finish processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'")
-            return f"RPC connection exception. Exception: {e}"
 
-        if 'result' in response_data:
-            logging.info(f"RPC response have a result '{response_data['result']}'")
-            logging.debug(f"****Finish processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'")
-            return response_data['result']
-        else:
-            logging.error("RPC response haven't a result")
-            logging.debug(f"****Finish processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'")
-            return f"RPC response haven't a result. Response description: {response_data}"
+            if 'result' in response_data:
+                logging.info(f"RPC response have a result:\n'{response_data['result']}'")
+                return response_data['result']
+            else:
+                logging.error("RPC response haven't a result")
+                return f"RPC response haven't a result. Response description: {response_data}"
+
+        except Exception as e:
+            logging.error(f'BFF-FASTAPI server error. RPC connection exception: {e}')
+            return f'BFF-FASTAPI server error. RPC connection exception: {e}'
+        finally:
+            logging.debug(f"****\tFinish processing the 'call_rpc' request.****\t\nMethod: '{method}'\nInput Params:\n'{in_params}'\n")
 
 
 @app.get("/")
@@ -171,8 +184,6 @@ if __name__ == '__main__':
     logger = Logger("Log", "BFF-FASTAPI_Server.log")
     bff_fastapi = BffFastAPI()
 
-    app.mount("/static", StaticFiles(directory="WebApplication/frontend"), name="static")
-
-    logging.debug("*****************BFF-FASTAPI server was started*****************")
+    logging.debug("+++++++++++++++++++++++++BFF-FASTAPI server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=bff_fastapi.local_ip, port=bff_fastapi.port, access_log=True)
-    logging.debug("*****************BFF-FASTAPI server was stopped*****************")
+    logging.debug("-------------------------BFF-FASTAPI server was stopped-------------------------")

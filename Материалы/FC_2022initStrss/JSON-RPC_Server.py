@@ -37,7 +37,7 @@ class BaseModelWithFileParsing(BaseModel):
             next(file)  # Пропускаем заголовок
 
             for line in file:
-                values = [float(val) if val.replace('.', '', 1).isdigit() else int(val) for val in line.split()]
+                values = [float(val) if val.replace('.', '', 1).isdigit() else float(val) for val in line.split()]
                 model_instance = cls(**dict(zip(cls.__annotations__, values)))
                 data.append(model_instance)
 
@@ -83,12 +83,7 @@ class ProcessOutputModel(BaseModel):
     failure: Dict[str, List[Failure]]
 
 
-class TemplatesOutputModel(BaseModel):
-    file_name: str
-    file_content: str
-
-
-class InInputTemplateModel(BaseModel):
+class InputTemplateModel(BaseModel):
     fileName: str = Body(..., examples=["new_template.txt"])
     fileContent: str = Body(..., examples=["content"])
 
@@ -104,21 +99,54 @@ class BokehWriter:
         for filename, displacements_list in displacements_data.items():
 
             # Swap third and fourth elements in 'x' and 'y'
-            swapped_x = [d.x for d in displacements_list]
-            swapped_y = [d.y for d in displacements_list]
+            swapped_x = [d.x + d.u for d in displacements_list]
+            swapped_y = [d.y + d.v for d in displacements_list]
             swapped_x[2], swapped_x[3] = swapped_x[3], swapped_x[2]
             swapped_y[2], swapped_y[3] = swapped_y[3], swapped_y[2]
 
             source = ColumnDataSource(data=dict(
                 node=[d.node for d in displacements_list],
+                # x=[d.x for d in displacements_list],
+                # y=[d.y for d in displacements_list],
                 x=swapped_x,
                 y=swapped_y,
                 u=[d.u for d in displacements_list],
                 v=[d.v for d in displacements_list]
             ))
 
-            p = figure(title=f"Displacements for {filename}", x_axis_label='X', y_axis_label='Y')
+            print(f"Node {source.data.get('node')}. X {source.data.get('x')} Y {source.data.get('y')}")
+
+            p = figure(title=filename, x_axis_label='X-coordinate', y_axis_label='Y-coordinate')
             p.patch('x', 'y', source=source, fill_color="blue", line_color="black")
+            plots.append(p)
+
+        # Do not save to file, instead, get components
+        script, div = components(gridplot(plots, ncols=1))
+        return script, div
+
+    @staticmethod
+    async def create_stress_plot(stress_data: Dict[str, List[Stress]]):
+        plots = []
+        for filename, stress_list in stress_data.items():
+
+            # Swap third and fourth elements in 'x' and 'y'
+            swapped_x = [d.x for d in stress_list]
+            swapped_y = [d.y for d in stress_list]
+            swapped_x[2], swapped_x[3] = swapped_x[3], swapped_x[2]
+            swapped_y[2], swapped_y[3] = swapped_y[3], swapped_y[2]
+
+            source = ColumnDataSource(data=dict(
+                int_point=[d.int_point for d in stress_list],
+                # x=[d.x for d in stress_list],
+                # y=[d.y for d in stress_list],
+                x=swapped_x,
+                y=swapped_y
+            ))
+
+            print(f"Int point {source.data.get('int_point')}. X {source.data.get('x')} Y {source.data.get('y')}")
+
+            p = figure(title=filename, x_axis_label='X-coordinate', y_axis_label='Y-coordinate')
+            p.patch('x', 'y', source=source, fill_color="red", line_color="black")
             plots.append(p)
 
         # Do not save to file, instead, get components
@@ -127,12 +155,25 @@ class BokehWriter:
 
     @classmethod
     async def create_plots(cls, result: ProcessOutputModel) -> str:
-        script, div = await cls.create_displacements_plot(result.displacements)
+        displacements_scripts, displacements_divs = await cls.create_displacements_plot(result.displacements)
+        stress_scripts, stress_divs = await cls.create_stress_plot(result.stress)
 
-        script = script[44:-15]
-        div = div[5:-7]
+        # Удаляем теги <script> и <div> из полученных данных
+        displacements_scripts = displacements_scripts[44:-15]
+        displacements_divs = displacements_divs[5:-7]
+        stress_scripts = stress_scripts[44:-15]
+        stress_divs = stress_divs[5:-7]
 
-        json_data = json.dumps({"script": script, "div": div})
+        print(f"!{displacements_scripts}!")
+        print(f"!{displacements_divs}!")
+        print(f"!{stress_scripts}!")
+        print(f"!{stress_divs}!")
+
+        json_data = json.dumps({
+            "displacements": {"scripts": displacements_scripts, "divs": displacements_divs},
+            "stress": {"scripts": stress_scripts, "divs": stress_divs}
+        })
+
         return json_data
 
 
@@ -142,7 +183,7 @@ class JSONRPC:
         self.port = port
 
     @staticmethod
-    async def save_input_template(in_file: InInputTemplateModel):
+    async def save_input_template(in_file: InputTemplateModel):
         logging.debug("****Start processing the 'save_input_template' request****")
 
         file_path = f"InputTemplates/{in_file.fileName}"
@@ -150,18 +191,19 @@ class JSONRPC:
         try:
             with open(file_path, "w") as file:
                 file.write(in_file.fileContent)
-            logging.debug(f"The file '{file_path}' has been create: '{in_file.fileContent}'")
+            logging.debug(f"The file '{file_path}' has been create:\n'{in_file.fileContent}'")
             return None
 
         except Exception as e:
-            logging.exception(f"Internal server error: {e}")
-            raise Error(data={'details': f'Internal server error: {e}', 'status_code': 505})
+            logging.exception(f"JSON-RPC server error: {e}")
+            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 505})
         finally:
             logging.debug("****Finish processing the 'save_input_template' request****")
 
     @staticmethod
     async def get_input_templates() -> Dict[str, str]:
         logging.debug("****Start processing the 'get_input_templates' request****")
+
         files_data = {}
 
         try:
@@ -171,15 +213,16 @@ class JSONRPC:
                     logging.debug(f"{file_path} is file")
                     with open(file_path, 'r') as file:
                         file_content = file.read()
-                    logging.debug(f"The file '{file_path}' has been read: '{file_content}'")
+                    logging.debug(f"The file '{file_path}' has been read:\n'{file_content}'")
                     files_data[f"{filename}"] = file_content
 
             return files_data
 
         except Exception as e:
-            logging.exception(f"Internal server error: {e}")
-            raise Error(data={'details': f'Internal server error: {e}', 'status_code': 504})
+            logging.exception(f"JSON-RPC server error: {e}")
+            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 504})
         finally:
+            logging.debug(f"Request 'get_input_templates' return next input templates:\n'{files_data}'")
             logging.debug("****Finish processing the 'get_input_templates' request****")
 
     async def run_selected_template(self, in_file: InFileModel) -> str:
@@ -190,18 +233,18 @@ class JSONRPC:
                 # Открываем файл и читаем его содержимое
                 with open(f"InputTemplates/{in_file.fileName}", "r") as file:
                     content = file.read()
-                logging.debug(f"The file 'InputTemplates/{in_file.fileName}' has been read: '{content}'")
+                logging.debug(f"The file 'InputTemplates/{in_file.fileName}' has been read:\n'{content}'")
 
                 # Сохраняем полученный результат в файл "input.txt"
                 with open("input.txt", "w") as output_file:
                     output_file.write(content)
-                logging.debug(f"The file 'input.txt' has been create: '{content}'")
+                logging.debug(f"The file 'input.txt' has been create:\n'{content}'")
 
                 return await self.run_pioner()
 
             except Exception as e:
-                logging.exception(f"Internal server error: {e}")
-                raise Error(data={'details': f'Internal server error: {e}', 'status_code': 503})
+                logging.exception(f"JSON-RPC server error: {e}")
+                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 503})
             finally:
                 logging.debug("****Finish processing the 'run_selected_template' request****")
 
@@ -231,15 +274,15 @@ class JSONRPC:
                     failure=failure_data
                 )
 
-                logging.debug(f"Request have ProcessOutputModel: {result}")
+                logging.debug(f"Request have ProcessOutputModel:\n{result}")
                 return await BokehWriter.create_plots(result)
 
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error while executing the process: {e}")
                 raise Error(data={'details': f'Error while executing the process: {e}', 'status_code': 501})
             except Exception as e:
-                logging.exception(f"Internal server error: {e}")
-                raise Error(data={'details': f'Internal server error: {e}', 'status_code': 502})
+                logging.exception(f"JSON-RPC server error: {e}")
+                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 502})
             finally:
                 logging.debug("****Finish processing the 'run_pioner' request****")
 
@@ -314,7 +357,7 @@ async def get_input_templates() -> Dict[str, str]:
 
 
 @api_v1.method(errors=[Error])
-async def save_input_template(in_file: InInputTemplateModel):
+async def save_input_template(in_file: InputTemplateModel):
     return await json_rpc.save_input_template(in_file)
 
 
@@ -324,6 +367,6 @@ if __name__ == '__main__':
 
     app = jsonrpc.API()
     app.bind_entrypoint(api_v1)
-    logging.debug("*****************JSON-RPC server was started*****************")
+    logging.debug("+++++++++++++++++++++++++JSON-RPC server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=json_rpc.local_ip, port=json_rpc.port, access_log=True)
-    logging.debug("*****************JSON-RPC server was stopped*****************")
+    logging.debug("-------------------------JSON-RPC server was stopped-------------------------")
