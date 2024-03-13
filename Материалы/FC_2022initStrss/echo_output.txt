@@ -1361,12 +1361,12 @@ prestress from file code                    (prestress_flag) =    0
  Step-by-step solution (20 time steps)
 
     calculation of load vector                        0.01
-    solution of equations                             0.01
+    solution of equations                             0.00
     calculation and printing of displacements,
-            pore pressure, temperature, stresses      0.09
+            pore pressure, temperature, stresses      0.07
 
-                               step-by-step total     0.11
+                               step-by-step total     0.08
 
 
 
- Total solution time                                  0.11
+ Total solution time                                  0.09

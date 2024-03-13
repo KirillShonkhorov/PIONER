@@ -6,16 +6,11 @@ from fastapi import FastAPI, WebSocket, Request
 from fastapi.websockets import WebSocketDisconnect, WebSocketState
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 
 from Logger import Logger
+from PydanticModels import ErrorModel
 
 app = FastAPI()
-
-
-class ErrorModel(BaseModel):
-    details: str
-    status_code: int
 
 
 class ConnectionManager:
