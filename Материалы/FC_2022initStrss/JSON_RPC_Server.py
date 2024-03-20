@@ -35,6 +35,23 @@ class JSONRPC:
 
         return local_ip  # Если указан явный IP-адрес, вернуть его
 
+    async def delete_input_template(self, in_file: InFileModel):
+        logging.info("****Start processing the 'delete_input_template' request****")
+
+        file_path = f"InputTemplates/{in_file.fileName}"
+
+        if await self.check_file(file_path, 400, "delete_input_template"):
+            try:
+                os.remove(file_path)
+                logging.debug(f"The file '{file_path}' has been delete")
+                return True
+
+            except Exception as e:
+                logging.exception(f"JSON-RPC server error: {e}")
+                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 507})
+            finally:
+                logging.info("****Finish processing the 'delete_input_template' request****")
+
     @staticmethod
     async def save_input_template(in_file: InputTemplateModel):
         logging.info("****Start processing the 'save_input_template' request****")
@@ -49,7 +66,7 @@ class JSONRPC:
 
         except Exception as e:
             logging.exception(f"JSON-RPC server error: {e}")
-            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 507})
+            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 508})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
@@ -81,7 +98,7 @@ class JSONRPC:
     async def run_selected_template(self, in_file: InFileModel) -> str:
         logging.info("****Start processing the 'run_selected_template' request****")
 
-        if await self.check_file(f"InputTemplates/{in_file.fileName}", 400, "run_selected_template"):
+        if await self.check_file(f"InputTemplates/{in_file.fileName}", 401, "run_selected_template"):
             try:
                 # Открываем файл и читаем его содержимое
                 with open(f"InputTemplates/{in_file.fileName}", "r") as file:
@@ -217,6 +234,11 @@ async def get_input_templates() -> Dict[str, str]:
 @api_v1.method(errors=[Error])
 async def save_input_template(in_file: InputTemplateModel):
     return await json_rpc.save_input_template(in_file)
+
+
+@api_v1.method(errors=[Error])
+async def delete_input_template(in_file: InFileModel):
+    return await json_rpc.delete_input_template(in_file)
 
 
 if __name__ == '__main__':

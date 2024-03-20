@@ -42,6 +42,32 @@ class BffFastAPI:
 
         return local_ip  # Если указан явный IP-адрес, вернуть его
 
+    async def delete_input_template(self, request: Request):
+        try:
+            logging.info("****Start processing the 'delete_input_template' request****")
+
+            data = await request.json()
+            file_name = data.get("fileName")
+
+            in_params = {
+                "in_file": {
+                    "fileName": file_name,
+                }
+            }
+
+            if await self.call_rpc("delete_input_template", in_params):
+                logging.debug("Request return: True")
+                return True
+            else:
+                logging.debug("Request return: False")
+                return False
+
+        except Exception as error:
+            logging.exception(f"BFF-FASTAPI server error: {error}")
+            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 502})
+        finally:
+            logging.info("****Finish processing the 'delete_input_template' request****")
+
     async def save_input_template(self, request: Request):
         try:
             logging.info("****Start processing the 'save_input_template' request****")
@@ -66,7 +92,7 @@ class BffFastAPI:
 
         except Exception as error:
             logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 502})
+            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 503})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
@@ -158,6 +184,11 @@ async def get_input_templates():
 @app.post("/save_input_template")
 async def save_input_template(request: Request):
     return await bff_fastapi.save_input_template(request)
+
+
+@app.post("/delete_input_template")
+async def delete_input_template(request: Request):
+    return await bff_fastapi.delete_input_template(request)
 
 
 @app.websocket("/ws")

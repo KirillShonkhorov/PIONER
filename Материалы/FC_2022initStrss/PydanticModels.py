@@ -86,4 +86,4 @@ class InputTemplateModel(BaseModel):
 
 
 class InFileModel(BaseModel):
-    fileName: str = Body(..., examples=["full_input.txt"])
+    fileName: str = Body(..., examples=["input.txt"])
