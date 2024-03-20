@@ -1,64 +1,50 @@
 import logging
 import uvicorn
 import httpx
+import netifaces
+import asyncio
 
 from fastapi import FastAPI, WebSocket, Request
-from fastapi.websockets import WebSocketDisconnect, WebSocketState
+from fastapi.websockets import WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from Logger import Logger
-from PydanticModels import ErrorModel
+from PydanticModels import Error
+from WebsocketManager import ConnectionManager
 
 app = FastAPI()
-
-
-class ConnectionManager:
-    def __init__(self):
-        self.connections = set()
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.connections.add(websocket)
-        logging.info('WebSocket connected')
-
-    @staticmethod
-    async def disconnect(websocket: WebSocket):
-        if websocket.client_state != WebSocketState.DISCONNECTED:
-            await websocket.close()
-            logging.info('WebSocket disconnected')
-        else:
-            logging.info('WebSocket is already disconnected')
-
-    async def send_message(self, message: str, websocket: WebSocket):
-        try:
-            await websocket.send_text(message)
-            logging.debug(f'WebSocket sent message "{message}"')
-        except WebSocketDisconnect:
-            self.connections.remove(websocket)
-            await websocket.close()
-            logging.warning('Client disconnected. Cleaned up')
-
-    async def broadcast(self, message: str):
-        for connection in self.connections:
-            await self.send_message(message, connection)
-            logging.debug(f'WebSocket broadcast sent a message "{message}"')
-
-
 manager = ConnectionManager()
 
 
 class BffFastAPI:
-    def __init__(self, local_ip='localhost', port=8000):
-        self.local_ip = local_ip
+    def __init__(self, rpc_server_url, local_ip='localhost', port=8000):
+        self.local_ip = self.local_ip = asyncio.run(self.get_local_ip(local_ip))
         self.port = port
-        self.base_url = f"http://{local_ip}:5000/api/v1/jsonrpc/"
+        self.rpc_server_url = f"http://{rpc_server_url}/api/v1/jsonrpc/"
         self.templates = Jinja2Templates(directory="WebApplication/frontend/html")
         app.mount("/static", StaticFiles(directory="WebApplication/frontend"), name="static")
 
+    @staticmethod
+    async def get_local_ip(local_ip):
+        if local_ip == 'localhost':
+            interfaces = netifaces.interfaces()
+            for interface in interfaces:
+                addresses = netifaces.ifaddresses(interface)
+                if netifaces.AF_INET in addresses:
+                    for address_info in addresses[netifaces.AF_INET]:
+                        if 'addr' in address_info:
+                            ip_address = address_info['addr']
+                            if ip_address.startswith('192.168.'):
+                                return ip_address
+
+            return local_ip  # Если не найдено подходящего IP-адреса, вернуть localhost
+
+        return local_ip  # Если указан явный IP-адрес, вернуть его
+
     async def save_input_template(self, request: Request):
         try:
-            logging.debug("\t****Start processing the 'save_input_template' request****\t")
+            logging.info("****Start processing the 'save_input_template' request****")
 
             data = await request.json()
             file_name = data.get("fileName")
@@ -71,37 +57,42 @@ class BffFastAPI:
                 }
             }
 
-            return await self.call_rpc("save_input_template", in_params)
+            if await self.call_rpc("save_input_template", in_params):
+                logging.debug("Request return: True")
+                return True
+            else:
+                logging.debug("Request return: False")
+                return False
 
         except Exception as error:
             logging.exception(f"BFF-FASTAPI server error: {error}")
-            return ErrorModel(details=f"BFF-FASTAPI server error : {error}", status_code=501)
+            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 502})
         finally:
-            logging.debug("\t****Finish processing the 'save_input_template' request****\t")
+            logging.info("****Finish processing the 'save_input_template' request****")
 
     async def get_html(self, request: Request):
         try:
-            logging.debug("\t****Start processing the 'get_html' request****\t")
+            logging.info("****Start processing the 'get_html' request****")
             return self.templates.TemplateResponse("selectTemplate.html", {"request": request, "user_ip": self.local_ip, "user_port": self.port})
         except Exception as error:
             logging.exception(f"BFF-FASTAPI server error: {error}")
-            return ErrorModel(details=f"BFF-FASTAPI server error : {error}", status_code=500)
+            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 500})
         finally:
-            logging.debug("\t****Finish processing the 'get_html' request****\t")
+            logging.info("****Finish processing the 'get_html' request****")
 
     async def websocket_endpoint(self, websocket: WebSocket):
-        logging.debug("****Start processing the 'websocket_endpoint' request****")
+        logging.info("****Start processing the 'websocket_endpoint' request****")
 
         try:
             await manager.connect(websocket)
-        except Exception as e:
+        except Exception as error:
             await manager.disconnect(websocket)
-            logging.error(f"WebSocket was disconnected. Exception: {e}")
+            logging.exception(f"WebSocket was disconnected. Exception: {error}")
 
         try:
             while True:
                 data = str(await websocket.receive_text())
-                logging.info(f"Received data from WebSocket: {data}")
+                logging.debug(f"Received data from WebSocket: {data}")
 
                 in_params = {
                     "in_file": {
@@ -111,25 +102,23 @@ class BffFastAPI:
 
                 rpc_data = await self.call_rpc("run_selected_template", in_params)
 
-                print(rpc_data)
-
                 await websocket.send_text(rpc_data)
 
         except WebSocketDisconnect:
             await manager.disconnect(websocket)
-            logging.warning("The client has disconnected. Cleaned up")
+            logging.exception("The client has disconnected. Cleaned up")
         except Exception as e:
-            logging.error(f"WebSocket Exception: {e}")
+            logging.exception(f"WebSocket Exception: {e}")
         finally:
-            logging.debug("****Finish processing the 'websocket_endpoint' request****")
+            logging.info("****Finish processing the 'websocket_endpoint' request****")
 
     async def call_rpc(self, method, in_params):
         try:
-            logging.debug(f"\t****Start processing the 'call_rpc' request.****\t\nMethod: '{method}'\nInput Params:\n'{in_params}'\n")
+            logging.info(f"****Start processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'\n")
 
-            url = f"{self.base_url}{method}"
+            url = f"{self.rpc_server_url}{method}"
+
             headers = {'content-type': 'application/json'}
-
             loc_json_rpc = {
                 "jsonrpc": "2.0",
                 "id": "0",
@@ -143,17 +132,17 @@ class BffFastAPI:
             logging.debug(f'Response for RPC was completed')
 
             if 'result' in response_data:
-                logging.info(f"RPC response have a result:\n'{response_data['result']}'")
+                logging.debug(f"RPC response have a result:\n'{response_data['result']}'")
                 return response_data['result']
             else:
-                logging.error("RPC response haven't a result")
-                return f"RPC response haven't a result. Response description: {response_data}"
+                logging.warning("RPC response haven't a result!")
+                return Error(data={'details': f"RPC response haven't a result. Response description: {response_data}", 'status_code': 400})
 
-        except Exception as e:
-            logging.error(f'BFF-FASTAPI server error. RPC connection exception: {e}')
-            return f'BFF-FASTAPI server error. RPC connection exception: {e}'
+        except Exception as error:
+            logging.exception(f'BFF-FASTAPI server error. RPC connection exception: {error}')
+            return Error(data={'details': f"BFF-FASTAPI server error. RPC connection exception: {error}", 'status_code': 501})
         finally:
-            logging.debug(f"****\tFinish processing the 'call_rpc' request.****\t\nMethod: '{method}'\nInput Params:\n'{in_params}'\n")
+            logging.info(f"****Finish processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'\n")
 
 
 @app.get("/")
@@ -176,9 +165,9 @@ async def websocket_endpoint(websocket: WebSocket):
     await bff_fastapi.websocket_endpoint(websocket)
 
 if __name__ == '__main__':
-    logger = Logger("Log", "BFF-FASTAPI_Server.log")
-    bff_fastapi = BffFastAPI()
+    logger = Logger("Log", "BFF-FASTAPI_Server.log", True)
+    bff_fastapi = BffFastAPI('192.168.0.102:5000')
 
-    logging.debug("+++++++++++++++++++++++++BFF-FASTAPI server was started+++++++++++++++++++++++++")
+    logging.info("+++++++++++++++++++++++++BFF-FASTAPI server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=bff_fastapi.local_ip, port=bff_fastapi.port, access_log=True)
-    logging.debug("-------------------------BFF-FASTAPI server was stopped-------------------------")
+    logging.info("-------------------------BFF-FASTAPI server was stopped-------------------------")

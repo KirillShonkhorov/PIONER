@@ -8,16 +8,11 @@ from pydantic import BaseModel
 
 class Error(jsonrpc.BaseError):
     CODE = 5000
-    MESSAGE = 'JSON-RPC Server Error'
+    MESSAGE = 'Server Error'
 
     class DataModel(BaseModel):
         details: str
         status_code: int
-
-
-class ErrorModel(BaseModel):
-    details: str
-    status_code: int
 
 
 class BaseModelWithFileParsing(BaseModel):
@@ -41,7 +36,7 @@ class BaseModelWithFileParsing(BaseModel):
 
         except Exception as error:
             logging.exception(f"JSON-RPC server error while parsing '{file_path}' file:\n{error}")
-            raise Error(data={'details': f"JSON-RPC server error while parsing '{file_path}' file:\n{error}", 'status_code': 502})
+            raise Error(data={'details': f"JSON-RPC server error while parsing '{file_path}' file:\n{error}", 'status_code': 503})
         finally:
             logging.info(f"\t\t****Finish parse a '{file_path}' file****\t\t")
 

@@ -15,20 +15,10 @@ class BokehWriter:
         plots = []
         for filename, displacements_list in displacements_data.items():
 
-            # Swap third and fourth elements in 'x' and 'y'
-            swapped_x = [d.x + d.u for d in displacements_list]
-            swapped_y = [d.y + d.v for d in displacements_list]
-            swapped_x[2], swapped_x[3] = swapped_x[3], swapped_x[2]
-            swapped_y[2], swapped_y[3] = swapped_y[3], swapped_y[2]
-
             source = ColumnDataSource(data=dict(
                 node=[d.node for d in displacements_list],
-                # x=[d.x for d in displacements_list],
-                # y=[d.y for d in displacements_list],
-                x=swapped_x,
-                y=swapped_y,
-                u=[d.u for d in displacements_list],
-                v=[d.v for d in displacements_list]
+                x=[d.x + d.u for d in displacements_list],
+                y=[d.y + d.v for d in displacements_list],
             ))
 
             print(f"Node {source.data.get('node')}. X {source.data.get('x')} Y {source.data.get('y')}")
@@ -80,11 +70,6 @@ class BokehWriter:
         displacements_divs = displacements_divs[5:-7]
         stress_scripts = stress_scripts[44:-15]
         stress_divs = stress_divs[5:-7]
-
-        print(f"!{displacements_scripts}!")
-        print(f"!{displacements_divs}!")
-        print(f"!{stress_scripts}!")
-        print(f"!{stress_divs}!")
 
         json_data = json.dumps({
             "displacements": {"scripts": displacements_scripts, "divs": displacements_divs},

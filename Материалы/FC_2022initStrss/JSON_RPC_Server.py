@@ -1,20 +1,39 @@
 import os
 import re
 import shutil
+import netifaces
+import asyncio
 import subprocess
 import uvicorn
 
 from Logger import Logger
 from PydanticModels import *
-from Bokeh_Writer import BokehWriter
+from BokehWriter import BokehWriter
 
 api_v1 = jsonrpc.Entrypoint('/api/v1/jsonrpc')
 
 
 class JSONRPC:
     def __init__(self, local_ip='localhost', port=5000):
-        self.local_ip = local_ip
+        self.local_ip = asyncio.run(self.get_local_ip(local_ip))
         self.port = port
+
+    @staticmethod
+    async def get_local_ip(local_ip):
+        if local_ip == 'localhost':
+            interfaces = netifaces.interfaces()
+            for interface in interfaces:
+                addresses = netifaces.ifaddresses(interface)
+                if netifaces.AF_INET in addresses:
+                    for address_info in addresses[netifaces.AF_INET]:
+                        if 'addr' in address_info:
+                            ip_address = address_info['addr']
+                            if ip_address.startswith('192.168.'):
+                                return ip_address
+
+            return local_ip  # Если не найдено подходящего IP-адреса, вернуть localhost
+
+        return local_ip  # Если указан явный IP-адрес, вернуть его
 
     @staticmethod
     async def save_input_template(in_file: InputTemplateModel):
@@ -26,11 +45,11 @@ class JSONRPC:
             with open(file_path, "w") as file:
                 file.write(in_file.fileContent)
             logging.debug(f"The file '{file_path}' has been create:\n'{in_file.fileContent}'")
-            return None
+            return True
 
         except Exception as e:
             logging.exception(f"JSON-RPC server error: {e}")
-            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 505})
+            raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 507})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
@@ -78,7 +97,7 @@ class JSONRPC:
 
             except Exception as e:
                 logging.exception(f"JSON-RPC server error: {e}")
-                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 503})
+                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 506})
             finally:
                 logging.info("****Finish processing the 'run_selected_template' request****")
 
@@ -109,7 +128,7 @@ class JSONRPC:
                 raise Error(data={'details': f'Error while executing the process: {e}', 'status_code': 501})
             except Exception as e:
                 logging.exception(f"JSON-RPC server error: {e}")
-                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 502})
+                raise Error(data={'details': f'JSON-RPC server error: {e}', 'status_code': 505})
             finally:
                 logging.info("****Finish processing the 'run_pioner' request****")
 
@@ -175,7 +194,7 @@ class JSONRPC:
 
         except Exception as error:
             logging.exception(f"JSON-RPC server error while reading '{folder}' folder:\n{error}")
-            raise Error(data={'details': f"JSON-RPC server error while reading '{folder}' folder:\n{error}", 'status_code': 501})
+            raise Error(data={'details': f"JSON-RPC server error while reading '{folder}' folder:\n{error}", 'status_code': 502})
         finally:
             logging.info(f"\t****'{folder}' was read****\t")
 
@@ -201,11 +220,12 @@ async def save_input_template(in_file: InputTemplateModel):
 
 
 if __name__ == '__main__':
-    logger = Logger("Log", "JSON-RPC_Server.log")
+    logger = Logger("Log", "JSON-RPC_Server.log", True)
     json_rpc = JSONRPC()
 
     app = jsonrpc.API()
     app.bind_entrypoint(api_v1)
+
     logging.info("+++++++++++++++++++++++++JSON-RPC server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=json_rpc.local_ip, port=json_rpc.port, access_log=True)
     logging.info("-------------------------JSON-RPC server was stopped-------------------------")
