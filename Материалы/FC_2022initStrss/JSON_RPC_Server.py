@@ -62,7 +62,7 @@ class JSONRPC:
             with open(file_path, "w") as file:
                 file.write(in_file.fileContent)
             logging.debug(f"The file '{file_path}' has been create:\n'{in_file.fileContent}'")
-            return True
+            return None
 
         except Exception as e:
             logging.exception(f"JSON-RPC server error: {e}")
@@ -95,7 +95,7 @@ class JSONRPC:
             logging.debug(f"Request 'get_input_templates' return next input templates:\n'{files_data}'")
             logging.info("****Finish processing the 'get_input_templates' request****")
 
-    async def run_selected_template(self, in_file: InFileModel) -> str:
+    async def run_selected_template(self, in_file: InFileModel) -> ProcessOutputModel:
         logging.info("****Start processing the 'run_selected_template' request****")
 
         if await self.check_file(f"InputTemplates/{in_file.fileName}", 401, "run_selected_template"):
@@ -118,7 +118,7 @@ class JSONRPC:
             finally:
                 logging.info("****Finish processing the 'run_selected_template' request****")
 
-    async def run_pioner(self) -> str:
+    async def run_pioner(self) -> ProcessOutputModel:
         logging.info("****Start processing the 'run_pioner' request****")
 
         if await self.check_file("input.txt", 500, "run_pioner"):
@@ -137,8 +137,10 @@ class JSONRPC:
                     failure=failure_data
                 )
 
+                result.graphs = await BokehWriter.create_plots(result)
+
                 logging.debug(f"Request have ProcessOutputModel:\n{result}")
-                return await BokehWriter.create_plots(result)
+                return result
 
             except subprocess.CalledProcessError as e:
                 logging.exception(f"Error while executing the process: {e}")
@@ -217,12 +219,12 @@ class JSONRPC:
 
 
 @api_v1.method(errors=[Error])
-async def run_selected_template(in_file: InFileModel) -> str:
+async def run_selected_template(in_file: InFileModel) -> ProcessOutputModel:
     return await json_rpc.run_selected_template(in_file)
 
 
 @api_v1.method(errors=[Error])
-async def run_pioner() -> str:
+async def run_pioner() -> ProcessOutputModel:
     return await json_rpc.run_pioner()
 
 

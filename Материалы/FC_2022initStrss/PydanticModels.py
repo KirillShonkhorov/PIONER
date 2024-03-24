@@ -1,7 +1,7 @@
 import logging
 import fastapi_jsonrpc as jsonrpc
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 from fastapi import Body
 from pydantic import BaseModel
 
@@ -78,6 +78,7 @@ class ProcessOutputModel(BaseModel):
     stress: Dict[str, List[Stress]]
     stress_rotated: Dict[str, List[Stress]]
     failure: Dict[str, List[Failure]]
+    graphs: Optional[Dict[str, Dict[str, str]]] = None
 
 
 class InputTemplateModel(BaseModel):

@@ -1,26 +1,35 @@
-const getElement = id => document.getElementById(id);
-
-const notificationContainer = getElement('error-container');
-const notificationMsg = getElement('notification-msg');
-
-const inputFileName = getElement('file-name');
-const inputFileContent = getElement('file-content');
-
-try {
-    const params = new URLSearchParams(window.location.search);
-    const fileName = params.get('fileName');
-    const fileContent = params.get('fileContent');
-
-    inputFileName.value = fileName;
-    inputFileContent.value = fileContent;
-} catch (error) {
-    handleError(error);
+// Функция для загрузки всех элементов DOM
+async function loadDOMElements() {
+    const getElement = id => document.getElementById(id);
+    return await{
+        notificationContainer: getElement('error-container'),
+        notificationMsg: getElement('notification-msg'),
+        inputFileName: getElement('file-name'),
+        inputFileContent: getElement('file-content')
+    };
 }
 
+// Функция для загрузки и обработки данных
+async function loadDataAndProcess() {
+    try {
+        const { inputFileName, inputFileContent } = await loadDOMElements();
+        const params = new URLSearchParams(window.location.search);
+        const fileName = params.get('fileName');
+        const fileContent = params.get('fileContent');
+
+        inputFileName.value = fileName;
+        inputFileContent.value = fileContent;
+    } catch (error) {
+        await handleError(error);
+    }
+}
+
+// Функция для сохранения и запуска шаблона
 async function saveAndRunTemplate() {
     try {
-        const { value: fileName } = inputFileName;
-        const { value: fileContent } = inputFileContent;
+        const { inputFileName, inputFileContent } = await loadDOMElements();
+        const fileName = inputFileName.value;
+        const fileContent = inputFileContent.value;
 
         const response = await fetch('/save_input_template', {
             method: 'POST',
@@ -31,19 +40,25 @@ async function saveAndRunTemplate() {
         });
 
         if (!response.ok) {
-            handleError(response.text());
+            await handleError(response.text());
+        } else {
+            window.location.href = `/static/html/outputWebsocket.html?fileName=${encodeURIComponent(fileName)}`;
         }
 
-        console.log('Template saved successfully.');
-        window.location.href = `/static/html/outputWebsocket.html?fileName=${encodeURIComponent(fileName)}`;
-
     } catch (error) {
-        handleError(error);
+        await handleError(error);
     }
 }
 
+// Загрузка данных и обработка после загрузки DOM
+window.onload = async function () {
+    await loadDataAndProcess();
+};
+
+// Функция для обработки ошибок
 async function handleError(error) {
     console.error('Error:', error);
+    const { notificationContainer, notificationMsg } = await loadDOMElements();
     notificationMsg.textContent += error;
     notificationContainer.style.display = 'block';
 }

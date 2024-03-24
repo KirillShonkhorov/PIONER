@@ -1,66 +1,23 @@
-// Асинхронная функция для загрузки всех элементов DOM
+// Функция для загрузки всех элементов DOM
 async function loadDOMElements() {
     const getElement = id => document.getElementById(id);
-    const notificationContainerPromise = getElement('error-container');
-    const notificationMsgPromise = getElement('notification-msg');
-    const templatesContainerPromise = getElement('templates-container');
-    const noTemplatesMsgPromise = getElement('no-templates-msg');
-    const createTemplateBtnPromise = getElement('create-template-btn');
-
-    // Ожидаем загрузку всех элементов DOM
-    const [
-        notificationContainer,
-        notificationMsg,
-        templatesContainer,
-        noTemplatesMsg,
-        createTemplateBtn
-    ] = await Promise.all([
-        notificationContainerPromise,
-        notificationMsgPromise,
-        templatesContainerPromise,
-        noTemplatesMsgPromise,
-        createTemplateBtnPromise
-    ]);
-
-    return await { notificationContainer, notificationMsg, templatesContainer, noTemplatesMsg, createTemplateBtn };
+    return await {
+        notificationContainer: getElement('error-container'),
+        notificationMsg: getElement('notification-msg'),
+        templatesContainer: getElement('templates-container'),
+        noTemplatesMsg: getElement('no-templates-msg'),
+        createTemplateBtn: getElement('create-template-btn')
+    };
 }
 
-// Асинхронная функция для загрузки и обработки данных
-async function loadDataAndProcess() {
-    try {
-        const response = await fetch('/get_input_templates');
-        const answer = await response.json();
-
-        if (answer.data && answer.data.status_code) {
-            handleError(answer.data.details);
-        } else {
-            const { templatesContainer, noTemplatesMsg, createTemplateBtn } = await loadDOMElements();
-
-            while (templatesContainer.firstChild){
-                templatesContainer.removeChild(templatesContainer.firstChild);
-            }
-
-            if (Object.keys(answer).length === 0) {
-                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'block';
-            } else {
-                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'none';
-
-                for (const [fileName, fileContent] of Object.entries(answer)) {
-                    const fileDiv = await createFileDiv(fileName, fileContent);
-                    templatesContainer.appendChild(fileDiv);
-                }
-            }
-        }
-    } catch (error) {
-        handleError(error);
+// Функция для удаления всех дочерних элементов из контейнера
+async function removeAllChildElements(container) {
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
     }
 }
 
-// Загрузка данных и обработка после загрузки DOM
-window.onload = async function () {
-    await loadDataAndProcess();
-};
-
+// Функция для создания дочернего элемента, представляющего файл
 async function createFileDiv(fileName, fileContent) {
     const fileDiv = document.createElement('div');
     fileDiv.classList.add('file');
@@ -80,19 +37,19 @@ async function createFileDiv(fileName, fileContent) {
     const deleteBtn = await createDeleteButton(fileName);
     fileDiv.appendChild(deleteBtn);
 
-    return fileDiv;
+    return await fileDiv;
 }
 
+// Функция для создания кнопки удаления файла
 async function createDeleteButton(fileName) {
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Удалить шаблон';
     deleteBtn.classList.add('btn');
     deleteBtn.addEventListener('click', async function () {
-        try{
+        try {
             const selectedFileName = fileName;
-
             const response = await fetch('/delete_input_template', {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -100,18 +57,18 @@ async function createDeleteButton(fileName) {
             });
 
             if (!response.ok) {
-                handleError(response.text());
+                await handleError(await response.text);
             }
 
-            loadDataAndProcess();
-        }
-        catch (error){
-            handleError(error);
+            await loadDataAndProcess();
+        } catch (error) {
+            await handleError(error);
         }
     });
-    return deleteBtn;
+    return await deleteBtn;
 }
 
+// Функция для создания кнопки выбора файла
 async function createSelectButton(fileName, fileContent) {
     const selectBtn = document.createElement('button');
     selectBtn.textContent = 'Выбрать шаблон';
@@ -121,13 +78,49 @@ async function createSelectButton(fileName, fileContent) {
         const selectedFileContent = fileContent;
         window.location.href = `/static/html/editTemplate.html?fileName=${encodeURIComponent(selectedFileName)}&fileContent=${encodeURIComponent(selectedFileContent)}`;
     });
-    return selectBtn;
+    return await selectBtn;
 }
 
+// Функция для загрузки и обработки данных
+async function loadDataAndProcess() {
+    try {
+        const response = await fetch('/get_input_templates');
+        const answer = await response.json();
+
+        const { templatesContainer, noTemplatesMsg, createTemplateBtn } = await loadDOMElements();
+
+        await removeAllChildElements(templatesContainer);
+
+        if (await answer.data && await answer.data.status_code) {
+            await handleError(await answer.data.details);
+        } else {
+            if (Object.keys(answer).length === 0) {
+                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'block';
+            } else {
+                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'none';
+
+                for (const [fileName, fileContent] of Object.entries(answer)) {
+                    const fileDiv = await createFileDiv(fileName, fileContent);
+                    await templatesContainer.appendChild(fileDiv);
+                }
+            }
+        }
+    } catch (error) {
+        await handleError(error);
+    }
+}
+
+// Загрузка данных и обработка после загрузки DOM
+window.onload = async function () {
+    await loadDataAndProcess();
+};
+
+// Функция для создания нового шаблона
 async function createNewTemplate() {
     window.location.href = "static/html/index.html";
 }
 
+// Функция для обработки ошибок
 async function handleError(error) {
     console.error('Error:', error);
     const { notificationContainer, notificationMsg } = await loadDOMElements();

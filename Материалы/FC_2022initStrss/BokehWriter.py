@@ -1,5 +1,3 @@
-import json
-
 from typing import Dict, List
 from bokeh.layouts import gridplot
 from bokeh.embed import components
@@ -61,7 +59,7 @@ class BokehWriter:
         return script, div
 
     @classmethod
-    async def create_plots(cls, result: ProcessOutputModel) -> str:
+    async def create_plots(cls, result: ProcessOutputModel) -> ProcessOutputModel:
         displacements_scripts, displacements_divs = await cls.create_displacements_plot(result.displacements)
         stress_scripts, stress_divs = await cls.create_stress_plot(result.stress)
 
@@ -71,9 +69,9 @@ class BokehWriter:
         stress_scripts = stress_scripts[44:-15]
         stress_divs = stress_divs[5:-7]
 
-        json_data = json.dumps({
+        graphs = {
             "displacements": {"scripts": displacements_scripts, "divs": displacements_divs},
             "stress": {"scripts": stress_scripts, "divs": stress_divs}
-        })
+        }
 
-        return json_data
+        return graphs

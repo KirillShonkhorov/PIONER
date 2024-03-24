@@ -1,3 +1,4 @@
+import json
 import logging
 import uvicorn
 import httpx
@@ -19,7 +20,7 @@ manager = ConnectionManager()
 
 class BffFastAPI:
     def __init__(self, rpc_server_url, local_ip='localhost', port=8000):
-        self.local_ip = self.local_ip = asyncio.run(self.get_local_ip(local_ip))
+        self.local_ip = asyncio.run(self.get_local_ip(local_ip))
         self.port = port
         self.rpc_server_url = f"http://{rpc_server_url}/api/v1/jsonrpc/"
         self.templates = Jinja2Templates(directory="WebApplication/frontend/html")
@@ -83,12 +84,9 @@ class BffFastAPI:
                 }
             }
 
-            if await self.call_rpc("save_input_template", in_params):
-                logging.debug("Request return: True")
-                return True
-            else:
-                logging.debug("Request return: False")
-                return False
+            result = await self.call_rpc("save_input_template", in_params)
+            logging.debug(f"Request return: {result}")
+            return result is None
 
         except Exception as error:
             logging.exception(f"BFF-FASTAPI server error: {error}")
@@ -117,7 +115,7 @@ class BffFastAPI:
 
         try:
             while True:
-                data = str(await websocket.receive_text())
+                data = await websocket.receive_text()
                 logging.debug(f"Received data from WebSocket: {data}")
 
                 in_params = {
@@ -128,7 +126,7 @@ class BffFastAPI:
 
                 rpc_data = await self.call_rpc("run_selected_template", in_params)
 
-                await websocket.send_text(rpc_data)
+                await websocket.send_text(json.dumps(rpc_data))
 
         except WebSocketDisconnect:
             await manager.disconnect(websocket)
@@ -176,6 +174,11 @@ async def get_html(request: Request):
     return await bff_fastapi.get_html(request)
 
 
+@app.get("/get_ip_address")
+async def get_ip_address():
+    return f"{bff_fastapi.local_ip}:{bff_fastapi.port}"
+
+
 @app.get("/get_input_templates")
 async def get_input_templates():
     return await bff_fastapi.call_rpc("get_input_templates", {})
@@ -186,7 +189,7 @@ async def save_input_template(request: Request):
     return await bff_fastapi.save_input_template(request)
 
 
-@app.post("/delete_input_template")
+@app.delete("/delete_input_template")
 async def delete_input_template(request: Request):
     return await bff_fastapi.delete_input_template(request)
 
@@ -197,7 +200,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 if __name__ == '__main__':
     logger = Logger("Log", "BFF-FASTAPI_Server.log", True)
-    bff_fastapi = BffFastAPI('192.168.0.102:5000')
+    bff_fastapi = BffFastAPI('192.168.0.13:5000')
 
     logging.info("+++++++++++++++++++++++++BFF-FASTAPI server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=bff_fastapi.local_ip, port=bff_fastapi.port, access_log=True)

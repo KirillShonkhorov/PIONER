@@ -93,6 +93,11 @@ footer {
     flex-shrink: 0;
 }
 
+ul {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
 /* Стили для div */
 .file {
     border: 2px solid #388e3c; /* Толщина и цвет границы */
@@ -167,4 +172,107 @@ textarea#file-content {
     max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
     overflow: auto; /* Появление полосы прокрутки при необходимости */
     white-space: pre;
+}
+
+/* Стили для кнопок */
+.dropdown button {
+    background-color: #2e7d32; /* Темно-зеленый */
+    color: #fff;
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    padding: 15px; /* Увеличение размера кнопок */
+    margin-bottom: 10px; /* Отступ снизу каждой кнопки */
+    width: 100%; /* Ширина кнопки, вычитаем отступы */
+    border-radius: 8px; /* Более закругленные углы */
+    cursor: pointer;
+    font-size: 16px;
+    text-align: left;
+    transition: background-color 0.3s;
+    position: relative; /* Позиционируем относительно */
+}
+
+/* Стили для стрелочки */
+.dropdown button::after {
+    content: ''; /* Создаем пустой псевдоэлемент */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 50%; /* Выравнивание по вертикали */
+    right: 10px; /* Отступ справа */
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent; /* Создаем треугольник */
+    border-right: 5px solid transparent; /* Создаем треугольник */
+    border-top: 5px solid #fff; /* Создаем треугольник */
+    transform: translateY(-50%); /* Смещаем на половину высоты */
+}
+
+/* Стили при наведении на кнопку */
+.dropdown button:hover {
+    background-color: #388e3c; /* Светло-зеленый при наведении */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown-content {
+    display: none;
+    background-color: #f1f1f1;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    padding: 0; /* Убираем внутренние отступы */
+    z-index: 1;
+    border-radius: 5px; /* Закругленные углы */
+    overflow: auto; /* Скрытие содержимого, выходящего за границы */
+    max-height: 0; /* Начальная высота 0 */
+    transition: max-height 0.3s ease; /* Плавное изменение высоты */
+    left: 0; /* Выравниваем по левому краю */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown-content ul {
+    list-style-type: none; /* Убираем маркеры списка */
+    padding: 0; /* Убираем внутренние отступы */
+}
+
+/* Стили при наведении на элементы выпадающего списка */
+.dropdown-content a:hover {
+    background-color: #ddd; /* Светлее фон при наведении */
+}
+
+.dropdown {
+    position: relative;
+    margin-bottom: 10px;
+    width: 100%; /* Занимает всю доступную ширину */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown.show .dropdown-content {
+    display: block;
+    max-height: 100%; /* Максимальная высота равная высоте окна браузера */
+    padding: 12px 16px; /* Добавляем внутренние отступы */
+    top: calc(100% + 10px); /* Отображение под кнопкой */
+}
+
+/* Стили для таблиц */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px; /* Отступ сверху */
+    border-radius: 5px;
+    overflow: auto; /* Добавляем горизонтальный скролл, если содержимое таблицы не помещается */
+}
+
+/* Стили для разделительных линий */
+td {
+    padding: 8px;
+    border: 2px solid #aaa; /* Тонкая серая линия */
+}
+
+/* Стили для нечетных строк таблицы */
+tr:nth-child(odd) {
+    background-color: #f2f2f2; /* Светло-серый фон */
+}
+
+/* Стили при наведении на ячейки таблицы */
+td:hover {
+    background-color: #e0e0e0; /* Светлее фон при наведении */
+}
+
+.table-div {
+    overflow: auto; /* Скрытие содержимого, выходящего за границы */
 }
