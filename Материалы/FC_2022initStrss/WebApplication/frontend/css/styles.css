@@ -128,6 +128,8 @@ ul {
     border: 2px solid #ff0000; /* Толщина и цвет границы */
     border-radius: 5px; /* Закругленные углы */
     text-align: center; /* Выравнивание текста по центру */
+    word-wrap: break-word;
+
 }
 
 .file-data-container {

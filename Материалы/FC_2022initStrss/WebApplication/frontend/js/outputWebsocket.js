@@ -66,16 +66,22 @@ async function loadDOMElements() {
 // Функция для подключения к веб-сокету при загрузке страницы
 window.onload = async function ConnectToWebsocket() {
     try {
-        const response = await fetch('/get_ip_address');
-        const ipAddress = await response.text().then(data => data.replace(/"/g, ''));
-        const ws = new WebSocket(`ws://${ipAddress}/ws`);
+//        const response = await fetch('/get_ip_address');
+//        const data = await response.json();
+//
+//        //Проверяем, является ли IP-адрес IPv6 или IPv4
+//        const wsUrl = data.ip.includes(":") ?
+//            `ws://[${data.ip}]:${data.port}/ws` :
+//            `ws://${data.ip}:${data.port}/ws`;
+
+        const ws = new WebSocket('wss://pioner.ej.cabal.run/ws');
 
         ws.onopen = async event => WebsocketOpen(event, ws);
-        ws.onerror = async event => handleError(event);
+        ws.onerror = async event => handleError(event, 502);
         ws.onmessage = async event => WebsocketMessage(event);
-        ws.onclose = async event => handleError(event);
+        ws.onclose = async event => handleError(event, 504);
     } catch (error) {
-        handleError(error);
+        handleError(error, 500);
     }
 };
 
@@ -87,7 +93,7 @@ async function WebsocketOpen(event, ws) {
         await ws.send(fileName);
         await event.preventDefault();
     } catch (error) {
-        handleError(error);
+        handleError(error, 501);
     }
 }
 
@@ -105,7 +111,7 @@ async function WebsocketMessage(event) {
             }
         }
     }catch (error){
-        handleError(error);
+        handleError(error, 503);
     }
 }
 
@@ -161,42 +167,49 @@ async function createDropdown(key, value, graphs) {
             tableContainer.appendChild(table);
             dropdownContent.appendChild(tableContainer);
 
-            for (const [graphsKey, graphsValue] of Object.entries(graphs)) {
-                for (const [modelKey, modelValue] of Object.entries(graphsValue)) {
-                    if (modelKey == 'scripts'){
-                        const ScriptElement = document.createElement('script');
-                        ScriptElement.innerHTML = modelValue;
-                        document.body.appendChild(ScriptElement);
-                    }
-                    else{
-                        const DivAttributes = modelValue;
-                        const IdMatch = DivAttributes.match(/id="([^"]+)"/);
-                        const DataRootIdMatch = DivAttributes.match(/data-root-id="([^"]+)"/);
-                        const StyleMatch = DivAttributes.match(/style="([^"]+)"/);
-
-                        DivElement = document.createElement('div');
-
-                        // Устанавливаем атрибуты извлеченных данных
-                        if (IdMatch) {DivElement.setAttribute('id', IdMatch[1]);}
-                        if (DataRootIdMatch) {DivElement.setAttribute('data-root-id', DataRootIdMatch[1]);}
-                        if (StyleMatch) {DivElement.setAttribute('style', StyleMatch[1]);}
-
-                        dropdownContent.appendChild(DivElement);
-                    }
-                }
-            }
+//            for (const [graphsKey, graphsValue] of Object.entries(graphs)){
+//                for (const [fileKey, fileValue] of Object.entries(graphsValue)){
+//                    for (const [ObjectKey, objectValue] of Object.entries(fileValue)){
+//                        console.log(ObjectKey, objectValue);
+//
+//                        if(ObjectKey == 'scripts'){
+//                            const ScriptElement = document.createElement('script');
+//                            ScriptElement.innerHTML = objectValue;
+//                            document.body.appendChild(ScriptElement);
+//                            continue;
+//                        }
+//
+//                        const DivAttributes = objectValue;
+//                        const IdMatch = DivAttributes.match(/id="([^"]+)"/);
+//                        const DataRootIdMatch = DivAttributes.match(/data-root-id="([^"]+)"/);
+//                        const StyleMatch = DivAttributes.match(/style="([^"]+)"/);
+//
+//                        DivElement = document.createElement('div');
+//
+//                        // Устанавливаем атрибуты извлеченных данных
+//                        if (IdMatch) {DivElement.setAttribute('id', IdMatch[1]);}
+//                        if (DataRootIdMatch) {DivElement.setAttribute('data-root-id', DataRootIdMatch[1]);}
+//                        if (StyleMatch) {DivElement.setAttribute('style', StyleMatch[1]);}
+//
+//                        dropdownContent.appendChild(DivElement);
+//                        break;
+//                    }
+//                    break;
+//                }
+//                break;
+//            }
         }
 
         dropdown.appendChild(dropdownContent);
         return await dropdown;
     } catch (error){
-        handleError(error);
+        handleError(error, 505);
     }
 }
 
 // Функция для обработки ошибок
-async function handleError(error) {
+async function handleError(error, status_code) {
     const { notificationContainer, notificationMsg } = await loadDOMElements();
-    notificationMsg.textContent += error;
+    notificationMsg.textContent += `${error}. Status code: ${status_code}`;
     notificationContainer.style.display = 'block';
 }

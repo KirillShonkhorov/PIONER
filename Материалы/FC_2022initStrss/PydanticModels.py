@@ -15,6 +15,11 @@ class Error(jsonrpc.BaseError):
         status_code: int
 
 
+class IpAddressModel(BaseModel):
+    ip: str
+    port: str
+
+
 class BaseModelWithFileParsing(BaseModel):
     @classmethod
     def parse_file(cls, file_path: str, **kwargs) -> List['BaseModelWithFileParsing']:
@@ -78,7 +83,7 @@ class ProcessOutputModel(BaseModel):
     stress: Dict[str, List[Stress]]
     stress_rotated: Dict[str, List[Stress]]
     failure: Dict[str, List[Failure]]
-    graphs: Optional[Dict[str, Dict[str, str]]] = None
+    graphs: Optional[Dict[str, Dict[str, Dict[str, str]]]] = None
 
 
 class InputTemplateModel(BaseModel):

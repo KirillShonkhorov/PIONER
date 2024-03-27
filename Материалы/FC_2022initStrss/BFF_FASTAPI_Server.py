@@ -1,5 +1,7 @@
 import json
 import logging
+from typing import Dict
+
 import uvicorn
 import httpx
 import netifaces
@@ -11,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from Logger import Logger
-from PydanticModels import Error
+from PydanticModels import Error, IpAddressModel
 from WebsocketManager import ConnectionManager
 
 app = FastAPI()
@@ -150,7 +152,7 @@ class BffFastAPI:
                 "params": in_params
             }
 
-            response = httpx.post(url, json=loc_json_rpc, headers=headers)
+            response = httpx.post(url, json=loc_json_rpc, headers=headers, timeout=None)
             response.raise_for_status()
             response_data = response.json()
             logging.debug(f'Response for RPC was completed')
@@ -175,8 +177,8 @@ async def get_html(request: Request):
 
 
 @app.get("/get_ip_address")
-async def get_ip_address():
-    return f"{bff_fastapi.local_ip}:{bff_fastapi.port}"
+async def get_ip_address() -> IpAddressModel:
+    return IpAddressModel(ip=bff_fastapi.local_ip, port=str(bff_fastapi.port))
 
 
 @app.get("/get_input_templates")
@@ -200,7 +202,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 if __name__ == '__main__':
     logger = Logger("Log", "BFF-FASTAPI_Server.log", True)
-    bff_fastapi = BffFastAPI('192.168.0.13:5000')
+    bff_fastapi = BffFastAPI('127.0.0.1:5000', '201:a7d1:e55e:9c18:5318:5cb8:739f:2c06')
 
     logging.info("+++++++++++++++++++++++++BFF-FASTAPI server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=bff_fastapi.local_ip, port=bff_fastapi.port, access_log=True)

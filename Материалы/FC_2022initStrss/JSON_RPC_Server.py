@@ -245,7 +245,7 @@ async def delete_input_template(in_file: InFileModel):
 
 if __name__ == '__main__':
     logger = Logger("Log", "JSON-RPC_Server.log", True)
-    json_rpc = JSONRPC()
+    json_rpc = JSONRPC('127.0.0.1')
 
     app = jsonrpc.API()
     app.bind_entrypoint(api_v1)
