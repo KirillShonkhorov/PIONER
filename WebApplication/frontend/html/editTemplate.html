@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIONER</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Добро пожаловать в "PIONER"</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Главная</a></li>
+                <li><a href="#">Информация</a></li>
+                <li><a href="#">Контакты</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <div id="error-container" class="notification">
+                <h1 id="notification-msg">Произошла непредвиденная ошибка!<br> Детали: </h1>
+            </div>
+
+            <div><h2>Страница редактирования шаблона</h2></div>
+
+            <div class="container">
+                <h3>Измените имя файла и его содержимое при необходимости</h3>
+
+                <div class="file-data-container">
+                    <label for="file-name">Имя файла:</label>
+                    <input type="text" id="file-name" name="fileName" value="placeholder_file_name" maxlength="200">
+                </div>
+
+                <div class="file-data-container">
+                    <label for="file-content">Содержимое файла:</label>
+                    <textarea id="file-content" name="fileContent" rows="30">placeholder_file_content</textarea>
+                </div>
+
+                <button class="btn" onclick="saveAndRunTemplate()">Сохранить и выполнить</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Институт гидродинамики им. М.А. Лаврентьева СО РАН. Все права защищены.</p>
+    </footer>
+
+    <script src="/static/js/editTemplate.js" async></script> <!-- integrity="sha256-+GzJeOEsYb5JZFqpESsomplghps2UdxZ0Jl+z7q1Dy0="-->
+</body>
+
+</html>
