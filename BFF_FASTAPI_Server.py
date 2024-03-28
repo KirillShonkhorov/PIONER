@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Dict
 
 import uvicorn
 import httpx
@@ -60,10 +59,7 @@ class BffFastAPI:
 
             if await self.call_rpc("delete_input_template", in_params):
                 logging.debug("Request return: True")
-                return True
-            else:
-                logging.debug("Request return: False")
-                return False
+                return None
 
         except Exception as error:
             logging.exception(f"BFF-FASTAPI server error: {error}")

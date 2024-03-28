@@ -27,18 +27,18 @@
     <main>
         <section>
             <div id="error-container" class="notification">
-                <h1 id="notification-msg">Произошла непредвиденная ошибка!<br> Детали: </h1>
+                <h1 id="notification-msg"></h1>
             </div>
 
             <div><h2>Страница выбора шаблона входного файла</h2></div>
 
             <div class="container">
-                <h3>Выберите шаблон</h3>
+                <h3 id="container-title">Выберите шаблон</h3>
                 <button id="update-templates-btn" onclick="loadDataAndProcess()" class="btn">Обновить</button>
 
                 <div id="templates-container"></div>
 
-                <h1 id="no-templates-msg" class="notification" style="display: none;">Шаблоны не были найдены<br>Создайте новый шаблон</h1>
+                <h1 id="no-templates-msg" class="notification" style="display: none;">Шаблоны не были найдены. Создайте новый шаблон</h1>
                 <button id="create-template-btn" onclick="createNewTemplate()" class="btn" style="display: none;">Создать шаблон</button>
             </div>
         </section>

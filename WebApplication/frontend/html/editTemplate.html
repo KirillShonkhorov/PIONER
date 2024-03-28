@@ -26,13 +26,13 @@
     <main>
         <section>
             <div id="error-container" class="notification">
-                <h1 id="notification-msg">Произошла непредвиденная ошибка!<br> Детали: </h1>
+                <h1 id="notification-msg"></h1>
             </div>
 
             <div><h2>Страница редактирования шаблона</h2></div>
 
             <div class="container">
-                <h3>Измените имя файла и его содержимое при необходимости</h3>
+                <h3 id="container-title">Измените имя файла и его содержимое при необходимости</h3>
 
                 <div class="file-data-container">
                     <label for="file-name">Имя файла:</label>
@@ -41,10 +41,10 @@
 
                 <div class="file-data-container">
                     <label for="file-content">Содержимое файла:</label>
-                    <textarea id="file-content" name="fileContent" rows="30">placeholder_file_content</textarea>
+                    <textarea id="file-content" name="fileContent" oninput="adjustTextareaHeight(this)">placeholder_file_content</textarea>
                 </div>
 
-                <button class="btn" onclick="saveAndRunTemplate()">Сохранить и выполнить</button>
+                <button id="save-run-btn" class="btn" style="display: none;" onclick="saveAndRunTemplate()">Сохранить и выполнить</button>
             </div>
         </section>
     </main>

@@ -57,12 +57,12 @@ async function createDeleteButton(fileName) {
             });
 
             if (!response.ok) {
-                await handleError(await response.text);
+                await handleError(`Не удалось удалить шаблон.<br>Детали: ${await response.text}`);
             }
 
             await loadDataAndProcess();
         } catch (error) {
-            await handleError(error);
+            await handleError(`Не удалось удалить шаблон.<br>Детали: ${error}`);
         }
     });
     return await deleteBtn;
@@ -92,7 +92,7 @@ async function loadDataAndProcess() {
         await removeAllChildElements(templatesContainer);
 
         if (await answer.data && await answer.data.status_code) {
-            await handleError(await answer.data.details);
+            await handleError(`Сервер не вернул ответ.<br>Детали: ${await answer.data.details}`);
         } else {
             if (Object.keys(answer).length === 0) {
                 noTemplatesMsg.style.display = createTemplateBtn.style.display = 'block';
@@ -122,8 +122,7 @@ async function createNewTemplate() {
 
 // Функция для обработки ошибок
 async function handleError(error) {
-    console.error('Error:', error);
     const { notificationContainer, notificationMsg } = await loadDOMElements();
-    notificationMsg.textContent += error;
+    notificationMsg.innerHTML = error;
     notificationContainer.style.display = 'block';
 }

@@ -26,7 +26,7 @@ class Logger:
 
         logging.basicConfig(
             filename=self.full_path,  # Имя файла для сохранения логов
-            level=logging.DEBUG,  # Уровень логирования
+            level=logging.INFO,  # Уровень логирования
             format=self.data_format,  # Формат сообщений
             datefmt=self.date_format  # Формат времени
         )
@@ -35,6 +35,6 @@ class Logger:
         # Добавляем обработчик для вывода логов в консоль
 
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.DEBUG)
+        console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(logging.Formatter(self.data_format, self.date_format))
         logging.getLogger().addHandler(console_handler)
