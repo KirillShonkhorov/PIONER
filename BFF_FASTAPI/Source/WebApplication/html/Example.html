@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Уведомление о медленной загрузке</title>
+<style>
+    /* Стили для уведомления */
+    .notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #f44336; /* Красный цвет */
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        display: none; /* Уведомление изначально скрыто */
+        z-index: 9999;
+    }
+
+    /* Стили для кнопки */
+    .notification button {
+        background-color: #4CAF50; /* Зеленый цвет */
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div class="notification" id="notification">
+    Сайт загружается слишком медленно. Хотите загрузить облегченную версию?
+    <button onclick="loadLightVersion()">Да</button>
+</div>
+
+<script>
+// Функция для отображения уведомления
+function showNotification() {
+    document.getElementById("notification").style.display = "block";
+}
+
+// Функция для загрузки облегченной версии сайта
+function loadLightVersion() {
+    window.location.href = "light_version.html";
+}
+
+// Показать уведомление, если время загрузки страницы превышает 5 секунд
+setTimeout(showNotification, 5000); // Время в миллисекундах (в данном случае 5 секунд)
+
+</script>
+
+</body>
+</html>

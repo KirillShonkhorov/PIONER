@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIONER</title>
+</head>
+
+<body>
+    <div><h1>Страница для ввода данных в модуль Pioner</h1></div>
+
+    <form action="#" method="post">
+        <div id="inputHead">
+            <h3>Ввод заголовка. Формат (a160)</h3>
+            <label for="hed">Заголовок (hed 1-160):</label>
+            <input type="text" id="hed" name="hed" maxlength="160" placeholder="text">
+            <button type="button" id="inputKeyDataButton">Далее</button>
+            <hr>
+        </div>
+
+        <div id="inputKeyData" style="display: none;">
+            <div>
+                <h3>Ввод контрольных данных. Формат (i10, 2i5)</h3>
+                <label for="numnp">Количество узловых точек (numnp 1-10):</label>
+                <input type="number" id="numnp" name="numnp" max="100" placeholder="≥ 1 OR 0" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <br>
+            </div>
+            
+            <div>  
+                <label for="negl">Количество линейных групп элементов (negl 11-15):</label>
+                <input type="number" id="negl" name="negl" max="100" placeholder="≥ 0" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <br>
+            </div>
+            
+            <div>  
+                <label for="negnl">Количество групп нелинейных элементов (negnl 16-20):</label>
+                <input type="number" id="negnl" name="negnl" max="100" placeholder="≥ 0" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <br>
+            </div>
+
+            <button type="button" id="inputTimeParametersButton">Далее</button>
+                       
+            <hr>
+        </div>
+
+        <div id="inputTimeParameters" style="display: none;">
+            <div>
+                <h3>Ввод параметра времени. Формат (i5, i10, f10.0, 4f15.0)</h3>
+                <label for="ivartime">Индикатор шага по времени (ivartime 1-5):</label>
+                <input type="number" id="ivartime" name="ivartime" oninput="this.value = this.value.replace(/[^0-1]/g, '');" placeholder="1 OR 0" min="0" max="1">
+                <br>
+            </div>
+            
+            <div>  
+                <label for="Nste">Количество временных шагов (Nste 6-15):</label>
+                <input type="number" id="Nste" name="Nste" oninput="this.value = this.value.replace(/[^0-9]/g, '');" min="1" max="1000" placeholder="> 0">
+                <br>
+            </div>
+            
+            <div>  
+                <label for="Tstart">Время начала расчета задачи (Tstart 16-25):</label>
+                <input type="number" id="Tstart" name="Tstart" placeholder="= 0" value="0.0" readonly="readonly">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Tfinal">Время окончания расчета задачи (Tfinal 26-40):</label>
+                <input type="text" id="Tfinal" name="Tfinal" maxlength="8" placeholder="> 0">
+                <br>
+            </div>
+
+            <div>  
+                <label for="r_initial_delta_t">Доля конечного времени окончания для начального временного шага dt_ini (r_initial_delta_t 41-55):</label>
+                <input type="text" id="r_initial_delta_t" name="r_initial_delta_t" maxlength="8" >
+                <br>
+            </div>
+
+            <div>  
+                <label for="r_minimum_delta_t">Доля конечного времени окончания для минимального шага по времени dt_min (r_minimum_delta_t 56-70):</label>
+                <input type="text" id="r_minimum_delta_t" name="r_minimum_delta_t" maxlength="8">
+                <br>
+            </div>
+
+            <div>  
+                <label for="r_maximum_delta_t">Доля конечного времени окончания для максимального шага по времени dt_max (r_maximum_delta_t 71-85):</label>
+                <input type="text" id="r_maximum_delta_t" name="r_maximum_delta_t" maxlength="8">
+                <br>
+            </div>
+
+            <button type="button" id="inputIterationParametersButton">Далее</button>
+
+            <hr>
+        </div>
+
+        <div id="inputIterationParameters" style="display: none;">
+            <div>
+                <h3>Ввод параметра итерации. Формат (5i5,3f10.0)</h3>
+                <label for="Isref">Количество временных шагов между расчетом новой матрицы эффективной жесткости (Isref 1-5):</label>
+                <input type="number" id="Isref" name="Isref" max="1000" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="default =1">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Nutmre">Количество допустимых уменьшений размера шага на каждом шаге во времени (Nutmre 6-10):</label>
+                <input type="number" id="Nutmre" name="Nutmre"  max="1000" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="default =1">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Iequit">Количество временных шагов между итерационными процессами (Iequit 11-15):</label>
+                <input type="number" id="Iequit" name="Iequit" max="1000" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="default =1">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Itemax">Максимально допустимое число итераций на временном шаге (Itemax 16-20):</label>
+                <input type="number" id="Itemax" name="Itemax"  max="1000" oninput="this.value = this.value.replace(/[^0-9]/g, '');"  placeholder="default =15">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Iteopt">Оптимальное количество итераций на временном шаге (Iteopt 21-25):</label>
+                <input type="number" id="Iteopt" name="Iteopt"  max="1000" oninput="this.value = this.value.replace(/[^0-9]/g, '');"  placeholder="default =5">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Dtol">Относительная погрешность по перемещениям (Dtol 26-35):</label>
+                <input type="text" id="Dtol" name="Dtol"  maxlength="8"  placeholder="default =0.001" >
+                <br>
+            </div>
+
+            <div>  
+                <label for="Ftol">Относительная погрешность по напряжению (Ftol 36-45):</label>
+                <input type="text" id="Ftol" name="Ftol"  maxlength="8"  placeholder="default =0.001">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Etol">Относительная погрешность по энергии (Etol 46-55):</label>
+                <input type="text" id="Etol" name="Etol"  maxlength="8" placeholder="default =0.001">
+                <br>
+            </div>
+            
+            <button type="button" id="inputNodeCoordinatesButton">Подтвердить</button>
+
+            <hr>
+        </div>
+
+        <div id="inputNodeCoordinates" style="display: none;"></div>
+
+        <div id="inputControlTimeFunction" style="display: none;">
+            <div>
+                <h3>Линия управления функциями времени. Формат (2i5)</h3>
+                <label for="nlcur">Количество функций расписания t~f(t) (nlcur 1-5):</label>
+                <input type="number" id="nlcur" name="nlcur" max="100" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="≥ 0">
+                <br>
+            </div>
+
+            <div>  
+                <label for="Nptm">Максимальное количество точек, используемых для определения каждой из функций расписания nlcur (Nptm 6-10):</label>
+                <input type="number" id="Nptm" name="Nptm"  max="100" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="≥ 0">
+                <br>
+            </div>
+
+            <button type="button" id="inputTimeFunction1Button">Далее</button>
+
+            <hr>
+        </div>
+
+        <div id="inputTimeFunction1" style="display: none;"></div>
+
+        <div id="inputTimeFunction2" style="display: none;">
+            <h1>Next Section</h1>
+        </div>
+
+        <div id="notification"></div>
+    </form>
+
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/index.js" async></script> <!-- integrity="sha256-+GzJeOEsYb5JZFqpESsomplghps2UdxZ0Jl+z7q1Dy0="-->
+</body>
+
+</html>
