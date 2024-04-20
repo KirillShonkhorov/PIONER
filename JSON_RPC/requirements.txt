@@ -1,6 +1,0 @@
-typing
-bokeh==3.4.0
-fastapi-jsonrpc
-fastapi
-pydantic
-uvicorn
