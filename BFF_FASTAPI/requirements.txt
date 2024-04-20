@@ -1,8 +1,0 @@
-fastapi
-websockets
-fastapi-jsonrpc
-pydantic
-httpx
-pybase64
-bokeh==3.4.0
-uvicorn

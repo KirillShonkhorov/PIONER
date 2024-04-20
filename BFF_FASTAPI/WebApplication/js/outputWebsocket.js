@@ -65,17 +65,17 @@ async function loadDOMElements() {
 
 // Функция для подключения к веб-сокету при загрузке страницы
 window.onload = async function ConnectToWebsocket() {
-//    //Блок для получения ip-адреса с сервера
-//    const response = await fetch('/get_ip_address');
-//    const data = await response.json();
-//
-//    //Проверяем, является ли IP-адрес IPv6 или IPv4
-//    const wsUrl = data.ip.includes(":") ?
-//        `ws://[${data.ip}]:${data.port}/ws` :
-//        `ws://${data.ip}:${data.port}/ws`
-//
-//    //const ws = new WebSocket('wss://pioner.ej.cabal.run/ws');
-    const ws = new WebSocket('ws://localhost:8000/ws');
+    //Блок для получения ip-адреса с сервера
+    const response = await fetch('/get_ip_address');
+    const data = await response.json();
+
+    //Проверяем, является ли IP-адрес IPv6 или IPv4
+    const wsUrl = data.ip.includes(":") ?
+        `ws://[${data.ip}]:${data.port}/ws` :
+        `ws://${data.ip}:${data.port}/ws`
+
+    //const ws = new WebSocket('wss://pioner.ej.cabal.run/ws');
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = async event => WebsocketOpen(event, ws);
     ws.onmessage = async event => WebsocketMessage(event);
