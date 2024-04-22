@@ -367,8 +367,13 @@ async def websocket_endpoint(websocket: WebSocket):
 if __name__ == '__main__':
     logger = Logger("Log", "BFF-FASTAPI_Server.log", True)
 
-    json_rpc_host = socket.gethostbyname('json_rpc')
+    json_rpc_host = '0.0.0.0'
     json_rpc_port = os.getenv('JSON_RPC_PORT', 5000)
+
+    try:
+        json_rpc_host = socket.gethostbyname('json_rpc')
+    except Exception as error:
+        logging.exception(f"BFF-FASTAPI server error. Environment for RPC doesn't not exist: {error}")
 
     bff_fastapi_host = os.getenv('BFF_FASTAPI_HOST', '0.0.0.0')
     bff_fastapi_port = os.getenv('BFF_FASTAPI_PORT', 8000)
