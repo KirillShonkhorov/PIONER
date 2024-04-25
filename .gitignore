@@ -1,0 +1,11 @@
+task_list.txt
+echo_output.txt
+iteration_statistic.txt
+
+.idea/
+Displacements/
+Failure/
+Log/
+Patran/
+Stress/
+StressRotated/

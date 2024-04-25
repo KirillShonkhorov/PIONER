@@ -1,0 +1,376 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Задаем минимальную высоту равную высоте окна браузера */
+    font-family: 'Roboto', sans-serif; /* Шрифт Roboto */
+    background-color: #f0f5f5; /* Светло-серый фон */
+    margin: 0;
+    padding: 0;
+    color: #333; /* Темный текст */
+}
+
+header {
+    background-color: #4caf50; /* Темно-зеленый */
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 5px solid #388e3c;
+}
+
+main {
+    flex: 1;
+    color: #333;
+    background-color: #e0f2f1; /* Светло-зеленый */
+    padding: 20px;
+}
+
+footer {
+    background-color: #4caf50; /* Темно-зеленый */
+    color: #fff;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    border-top: 5px solid #388e3c;
+    flex-shrink: 0;
+}
+
+h3 {
+    font-size: 19px;
+    color: #333;
+    text-align: auto;
+    word-break: normal;
+}
+
+h2 {
+    font-size: 23px;
+    color: #333;
+    text-align: center;
+    word-break: normal;
+}
+
+h1 {
+    font-size: 30px;
+    color: #fff;
+    text-align: center;
+    word-break: normal;
+}
+
+ul {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #cfd8dc; /* Светло-серый при наведении */
+}
+
+.notification {
+    line-height: 1.5;
+    margin: 30px;
+    color: #ff3535;
+    text-align: center;
+}
+
+#error-container {
+    display: none; /* Скрыть контейнер по умолчанию */
+    background-color: #ffcccc; /* Цвет фона */
+    color: #990000; /* Цвет текста */
+    padding: 20px; /* Отступы внутри контейнера */
+    border: 2px solid #ff0000; /* Толщина и цвет границы */
+    border-radius: 5px; /* Закругленные углы */
+    text-align: center; /* Выравнивание текста по центру */
+    word-wrap: break-word;
+}
+
+#error-container h1 {color: #990000; font-size: 23px;}
+
+.container {
+    background-color: #aaddaa; /* Светло-серый */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+#no-templates-msg {font-size: 23px; margin: 30px;}
+
+.btn {
+    background-color: #2e7d32; /* Темно-зеленый */
+    color: #fff;
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    padding: 15px; /* Увеличение размера кнопок */
+    margin-right: 20px;
+    border-radius: 8px; /* Более закругленные углы */
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #388e3c; /* Светло-зеленый при наведении */
+}
+
+/* Стили для div */
+.file {
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    background-color: #eee; /* Белый фон */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    max-width: 100%; /* Элемент занимает всю доступную ширину */
+    margin-left: auto; /* Центрирование блока */
+    margin-right: auto; /* Центрирование блока */
+}
+
+/* Стили для pre */
+.bk-PreText {
+    padding: 10px;
+    border: 1px solid #444; /* Толщина и цвет границы */
+    border-radius: 5px;
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
+    overflow: auto; /* Появление полосы прокрутки при необходимости */
+}
+
+.file pre {
+    padding: 10px;
+    border: 1px solid #444; /* Толщина и цвет границы */
+    border-radius: 5px;
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
+    overflow: auto; /* Появление полосы прокрутки при необходимости */
+}
+
+.file-data-container {
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    background-color: #eee; /* Белый фон */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    max-width: 100%; /* Элемент занимает всю доступную ширину */
+    max-height: 100%; /* Элемент занимает всю доступную ширину */
+    margin-left: auto; /* Центрирование блока */
+    margin-right: auto; /* Центрирование блока */
+}
+
+.file-data-container label {
+    display: block; /* Сделать метку блочным элементом */
+    margin-bottom: 5px; /* Отступ снизу метки */
+    font-size: 18px;
+    color: #333; /* Цвет текста */
+}
+
+.file-data-container input[type="text"],
+    textarea#file-content {
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    width: 100%; /* Ширина занимает всю доступную ширину */
+    padding: 10px; /* Отступы внутри элемента */
+    border: 1px solid #ccc; /* Граница элемента */
+    border-radius: 5px; /* Закругленные углы */
+    box-sizing: border-box; /* Учитываем ширину границы в общей ширине элемента */
+    margin-bottom: 10px; /* Отступ снизу элемента */
+    font-family: Arial, sans-serif; /* Шрифт элемента */
+}
+
+textarea#file-content {
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    color: #444; /* Серый текст */
+    font-size: 20px;
+    resize: both;
+    max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
+    white-space: pre;
+}
+
+
+/* Стили для кнопок */
+.dropdown button {
+    background-color: #2e7d32; /* Темно-зеленый */
+    color: #fff;
+    border: 2px solid #388e3c; /* Толщина и цвет границы */
+    padding: 15px; /* Увеличение размера кнопок */
+    margin-bottom: 10px; /* Отступ снизу каждой кнопки */
+    width: 100%; /* Ширина кнопки, вычитаем отступы */
+    border-radius: 8px; /* Более закругленные углы */
+    cursor: pointer;
+    font-size: 16px;
+    text-align: left;
+    transition: background-color 0.3s;
+    position: relative; /* Позиционируем относительно */
+}
+
+/* Стили для стрелочки */
+.dropdown button::after {
+    content: ''; /* Создаем пустой псевдоэлемент */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 50%; /* Выравнивание по вертикали */
+    right: 10px; /* Отступ справа */
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent; /* Создаем треугольник */
+    border-right: 5px solid transparent; /* Создаем треугольник */
+    border-top: 5px solid #fff; /* Создаем треугольник */
+    transform: translateY(-50%); /* Смещаем на половину высоты */
+}
+
+/* Стили при наведении на кнопку */
+.dropdown button:hover {
+    background-color: #388e3c; /* Светло-зеленый при наведении */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown-content {
+    display: none;
+    background-color: #f1f1f1;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    padding: 0; /* Убираем внутренние отступы */
+    z-index: 1;
+    border-radius: 5px; /* Закругленные углы */
+    overflow: auto; /* Скрытие содержимого, выходящего за границы */
+    max-height: 0; /* Начальная высота 0 */
+    transition: max-height 0.3s ease; /* Плавное изменение высоты */
+    left: 0; /* Выравниваем по левому краю */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown-content ul {
+    list-style-type: none; /* Убираем маркеры списка */
+    padding: 0; /* Убираем внутренние отступы */
+}
+
+/* Стили при наведении на элементы выпадающего списка */
+.dropdown-content a:hover {
+    background-color: #ddd; /* Светлее фон при наведении */
+}
+
+.dropdown {
+    position: relative;
+    margin-bottom: 10px;
+    width: 100%; /* Занимает всю доступную ширину */
+}
+
+/* Стили для плавного отображения выпадающего списка */
+.dropdown.show .dropdown-content {
+    display: block;
+    max-height: 100%; /* Максимальная высота равная высоте окна браузера */
+    padding: 12px 16px; /* Добавляем внутренние отступы */
+    top: calc(100% + 10px); /* Отображение под кнопкой */
+}
+
+/* Стили для таблиц */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px; /* Отступ сверху */
+    border-radius: 5px;
+    overflow: auto; /* Добавляем горизонтальный скролл, если содержимое таблицы не помещается */
+}
+
+/* Стили для разделительных линий */
+td {
+    padding: 8px;
+    border: 2px solid #aaa; /* Тонкая серая линия */
+}
+
+/* Стили для нечетных строк таблицы */
+tr:nth-child(odd) {
+    background-color: #f2f2f2; /* Светло-серый фон */
+}
+
+/* Стили при наведении на ячейки таблицы */
+td:hover {
+    background-color: #e0e0e0; /* Светлее фон при наведении */
+}
+
+.table-div {
+    overflow: auto; /* Скрытие содержимого, выходящего за границы */
+}
+
+.load-notification {
+    text-align: center;
+    position: fixed;
+    bottom: 20px; /* Позиционирование уведомления снизу */
+    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2px solid #b00002;
+    background-color: #f44336; /* Красный цвет */
+    color: white;
+    padding:  20px 5px 5px 5px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none; /* Уведомление изначально скрыто */
+}
+
+.close-btn {
+    cursor: pointer;
+    position: absolute; /* Абсолютное позиционирование для кнопки */
+    top: 0px;
+    right: 5px; /* Правый верхний угол */
+}
+
+/* Стили для кнопки */
+.load-notification button {
+    background-color: #2e7d32; /* Зеленый цвет */
+    color: white;
+    border: 2px solid #388e3c;
+    padding: 5px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+
+/* Медиа-запрос для мобильных устройств */
+@media only screen and (max-width: 800px) {
+    .file pre {font-size: 14px; margin-top: 8px; margin-bottom: 8px;}
+    #container-title {font-size: 16px; margin-top: 8px; margin-bottom: 8px;}
+    h3 {font-size: 16px; margin: 0px;}
+    h2 {font-size: 18px;}
+    h1 {font-size: 20px;}
+    header {padding: 0px;}
+    main {padding: 0px;}
+    footer {padding: 0px;}
+    footer p {padding-left: 8px; padding-right: 8px;}
+    nav ul li {margin-right: 8px;}
+    .container {padding: 10px;}
+    .container h3 {word-break: normal;}
+    .btn {padding: 10px; margin-bottom: 8px; font-size: 14px;}
+    #update-templates-btn {margin-bottom: 0px;}
+    .file {padding: 8px;}
+    #no-templates-msg {margin: 20px; font-size: 18px;}
+    #error-container {margin: 20px; padding: 8px;}
+    #error-container h1 {font-size: 18px; margin: 0px;}
+    .load-notification {width: 90%;}
+
+    .file-data-container {padding: 10px;}
+    .file-data-container label {font-size: 16px;}
+    .file-data-container input[type="text"],
+    textarea#file-content { padding: 5px; margin-bottom: 0px; font-size: 14px;}
+}
+
