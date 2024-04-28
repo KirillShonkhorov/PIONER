@@ -116,11 +116,33 @@ class JSONRPC:
 
         return True
 
+    async def get_input_template_by_name(self, in_file: InputTemplateModel) -> InputTemplateModel:
+        """
+        Retrieve a InputTemplateModel.
+        This method is used to retrieve template data by its name.
+        :exception: 401
+        :exception: 502
+        :return: InputTemplateModel object.
+        """
+        logging.info("****Start processing the 'get_input_template_by_name' request****")
+
+        if await self.check_file(f"InputTemplates/{in_file.file_name}", 401, "get_input_template_by_name"):
+            try:
+                with open(f"InputTemplates/{in_file.file_name}", 'r', encoding='utf-8') as file:
+                    file_content = file.read()
+                return InputTemplateModel(file_name=in_file.file_name, file_content=file_content)
+
+            except Exception as error502:
+                logging.exception(f"JSON-RPC_Server error: {error502}")
+                raise Error(data={'details': f'JSON-RPC_Server error: {error502}', 'status_code': 502})
+            finally:
+                logging.info("****Finish processing the 'get_input_template_by_name' request****")
+
     @staticmethod
     async def save_input_template(in_file: InputTemplateModel):
         """
         Save the input template file.
-        :exception: 502
+        :exception: 503
         :param in_file: The InputTemplateModel object representing the file to be saved.
         """
         logging.info("****Start processing the 'save_input_template' request****")
@@ -132,23 +154,23 @@ class JSONRPC:
             logging.debug(f"The file '{file_path}' has been create:\n'{in_file.file_content}'")
             return None
 
-        except Exception as error502:
-            logging.exception(f"JSON-RPC_Server error: {error502}")
-            raise Error(data={'details': f'JSON-RPC_Server error: {error502}', 'status_code': 502})
+        except Exception as error503:
+            logging.exception(f"JSON-RPC_Server error: {error503}")
+            raise Error(data={'details': f'JSON-RPC_Server error: {error503}', 'status_code': 503})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
     async def run_selected_template(self, in_file: InputTemplateModel) -> ProcessOutputModel:
         """
         Run the selected template.
-        :exception: 401
-        :exception: 503
+        :exception: 402
+        :exception: 504
         :param in_file: The InputTemplateModel object representing the selected template file.
         :return: The ProcessOutputModel object containing the result of running the template.
         """
         logging.info("****Start processing the 'run_selected_template' request****")
 
-        if await self.check_file(f"InputTemplates/{in_file.file_name}", 401, "run_selected_template"):
+        if await self.check_file(f"InputTemplates/{in_file.file_name}", 402, "run_selected_template"):
             try:
                 with open(f"InputTemplates/{in_file.file_name}", "r") as file:
                     content = file.read()
@@ -160,23 +182,23 @@ class JSONRPC:
 
                 return await self.run_pioner()
 
-            except Exception as error503:
-                logging.exception(f"JSON-RPC_Server error: {error503}")
-                raise Error(data={'details': f'JSON-RPC_Server error: {error503}', 'status_code': 503})
+            except Exception as error504:
+                logging.exception(f"JSON-RPC_Server error: {error504}")
+                raise Error(data={'details': f'JSON-RPC_Server error: {error504}', 'status_code': 504})
             finally:
                 logging.info("****Finish processing the 'run_selected_template' request****")
 
     async def run_pioner(self) -> ProcessOutputModel:
         """
         Run PIONER application.
-        :exception: 504
         :exception: 505
         :exception: 506
+        :exception: 507
         :return: The ProcessOutputModel object containing the result of running the application.
         """
         logging.info("****Start processing the 'run_pioner' request****")
 
-        if await self.check_file("input.txt", 504, "run_pioner"):
+        if await self.check_file("input.txt", 505, "run_pioner"):
             try:
                 await self.run_fc_2022initstrss()
 
@@ -197,12 +219,12 @@ class JSONRPC:
                 logging.debug(f"Request have ProcessOutputModel:\n{result}")
                 return result
 
-            except subprocess.CalledProcessError as error505:
-                logging.exception(f"Error while executing the process: {error505}")
-                raise Error(data={'details': f'Error while executing the process: {error505}', 'status_code': 505})
-            except Exception as error506:
-                logging.exception(f"JSON-RPC_Server error: {error506}")
-                raise Error(data={'details': f'JSON-RPC_Server error: {error506}', 'status_code': 506})
+            except subprocess.CalledProcessError as error506:
+                logging.exception(f"Error while executing the process: {error506}")
+                raise Error(data={'details': f'Error while executing the process: {error506}', 'status_code': 506})
+            except Exception as error507:
+                logging.exception(f"JSON-RPC_Server error: {error507}")
+                raise Error(data={'details': f'JSON-RPC_Server error: {error507}', 'status_code': 507})
             finally:
                 logging.info("****Finish processing the 'run_pioner' request****")
 
@@ -210,7 +232,7 @@ class JSONRPC:
     async def process_files_in_folder(folder: str, model_class: type) -> Dict[str, List[FileParser]]:
         """
         Reading files from a folder and parsing them.
-        :exception: 507
+        :exception: 508
         :return: Dict {folder name: List[files in folder]}
         """
         logging.info(f"\t****Starting read a '{folder}' folder****\t")
@@ -229,9 +251,9 @@ class JSONRPC:
             logging.debug(f"Files in '{folder}' folder have a parse data:\n{data}")
             return data
 
-        except Exception as error507:
-            logging.exception(f"JSON-RPC_Server error while reading '{folder}' folder:\n{error507}")
-            raise Error(data={'details': f"JSON-RPC_Server error while reading '{folder}' folder:\n{error507}", 'status_code': 507})
+        except Exception as error508:
+            logging.exception(f"JSON-RPC_Server error while reading '{folder}' folder:\n{error508}")
+            raise Error(data={'details': f"JSON-RPC_Server error while reading '{folder}' folder:\n{error508}", 'status_code': 508})
         finally:
             logging.info(f"\t****'{folder}' was read****\t")
 
@@ -291,6 +313,11 @@ async def get_input_templates() -> InputTemplateListModel:
 @api_v1.method(errors=[Error])
 async def delete_input_template(in_file: InputTemplateModel):
     return await json_rpc.delete_input_template(in_file)
+
+
+@api_v1.method(errors=[Error])
+async def get_input_template_by_name(in_file: InputTemplateModel) -> InputTemplateModel:
+    return await json_rpc.get_input_template_by_name(in_file)
 
 
 @api_v1.method(errors=[Error])

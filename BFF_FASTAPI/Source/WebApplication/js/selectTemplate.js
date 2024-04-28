@@ -6,7 +6,15 @@ async function loadDOMElements() {
         notificationMsg: getElement('notification-msg'),
         templatesContainer: getElement('templates-container'),
         noTemplatesMsg: getElement('no-templates-msg'),
-        createTemplateBtn: getElement('create-template-btn')
+        createTemplateBtn: getElement('create-template-btn'),
+        deleteNotification: getElement('delete-notification'),
+        closeSpan: getElement('close-notification'),
+        confirmDeleteButton: getElement('confirm-delete'),
+        cancelDeleteButton: getElement('cancel-delete'),
+        infoDeleteText: getElement('info-delete-notification'),
+        overlay: getElement('overlay'),
+        delMsgLoadingSpinner: getElement('del-msg-loading-spinner'),
+        containerLoadingSpinner: getElement('container-loading-spinner')
     };
 }
 
@@ -71,24 +79,11 @@ async function createDeleteButton(fileName) {
     deleteBtn.textContent = 'Удалить шаблон';
     deleteBtn.classList.add('btn');
     deleteBtn.addEventListener('click', async function () {
-        try {
-            const selectedFileName = fileName;
-            const response = await fetch('/delete_input_template', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ fileName })
-            });
+        const {deleteNotification, infoDeleteText, overlay } = await loadDOMElements();
 
-            if (!response.ok) {
-                await handleError(`Не удалось удалить шаблон.<br>Детали: ${await response.text}`);
-            }
-
-            await loadDataAndProcess();
-        } catch (error) {
-            await handleError(`Не удалось удалить шаблон.<br>Детали: ${error}`);
-        }
+        overlay.style.display = 'block';
+        infoDeleteText.innerHTML = `Вы уверены, что хотите удалить файл "${fileName}"?`
+        deleteNotification.style.display = 'block';
     });
     return await deleteBtn;
 }
@@ -99,9 +94,7 @@ async function createSelectButton(fileName, fileContent) {
     selectBtn.textContent = 'Выбрать шаблон';
     selectBtn.classList.add('btn');
     selectBtn.addEventListener('click', async function () {
-        const selectedFileName = fileName;
-        const selectedFileContent = fileContent;
-        window.location.href = `/static/html/editTemplate.html?fileName=${encodeURIComponent(selectedFileName)}&fileContent=${encodeURIComponent(selectedFileContent)}`;
+        window.location.href = `/static/html/editTemplate.html?fileName=${encodeURIComponent(fileName)}`;
     });
     return await selectBtn;
 }
@@ -111,10 +104,12 @@ let dataProcessed = false;
 // Функция для загрузки и обработки данных
 async function loadDataAndProcess() {
     try {
+        const { templatesContainer, noTemplatesMsg, createTemplateBtn, containerLoadingSpinner } = await loadDOMElements();
+        containerLoadingSpinner.style.display = 'block';
+
         const response = await fetch('/get_input_templates');
         const answer = await response.json();
 
-        const { templatesContainer, noTemplatesMsg, createTemplateBtn } = await loadDOMElements();
         await removeAllChildElements(templatesContainer);
 
         if (await answer.data && await answer.data.status_code) {
@@ -132,6 +127,7 @@ async function loadDataAndProcess() {
             }
         }
         dataProcessed = true;
+        containerLoadingSpinner.style.display = 'none';
     } catch (error) {
         await handleError(error);
     }
@@ -176,6 +172,53 @@ async function hideNotification() {
     const notification = document.getElementById('load-notification');
     notification.style.display = 'none';
 }
+
+async function closeDeleteNotification() {
+    const {deleteNotification, overlay } = await loadDOMElements();
+    overlay.style.display = 'none';
+    deleteNotification.style.display = 'none';
+}
+
+async function cancelDeleteNotification() {
+    const {deleteNotification, overlay} = await loadDOMElements();
+    overlay.style.display = 'none';
+    deleteNotification.style.display = 'none';
+}
+
+async function confirmDeleteNotification() {
+    const {deleteNotification, infoDeleteText, overlay, delMsgLoadingSpinner } = await loadDOMElements();
+
+    try {
+        delMsgLoadingSpinner.style.display = 'block';
+
+        const htmlContent = infoDeleteText.innerHTML;
+        const matches = htmlContent.match(/"(.*?)"/);
+
+        if (matches && matches.length > 1) {
+            const fileName = matches[1];
+
+            const response = await fetch('/delete_input_template', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ fileName })
+            });
+
+            if (!response.ok) {
+                await handleError(`Не удалось удалить шаблон.<br>Детали: ${await response.text}`);
+            }
+            await loadDataAndProcess();
+        }
+    } catch (error) {
+        await handleError(`Не удалось удалить шаблон.<br>Детали: ${error}`);
+    }
+
+    delMsgLoadingSpinner.style.display = 'none';
+    overlay.style.display = 'none';
+    deleteNotification.style.display = 'none';
+}
+
 
 // Функция для обработки ошибок
 async function handleError(error) {

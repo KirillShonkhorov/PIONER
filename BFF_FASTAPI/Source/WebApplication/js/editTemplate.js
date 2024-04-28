@@ -14,8 +14,16 @@ async function loadDOMElements() {
 async function loadDataAndProcess() {
     const { inputFileName, inputFileContent, saveBtn } = await loadDOMElements();
     const params = new URLSearchParams(window.location.search);
-    const fileName = params.get('fileName');
-    const fileContent = params.get('fileContent');
+    const InputFileName = params.get('fileName');
+
+    const response = await fetch('/get_input_template_by_name', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ InputFileName })
+    });
+    const { file_name: fileName, file_content: fileContent } = await response.json();
 
     if (fileName && fileContent) {
         inputFileName.value = fileName;

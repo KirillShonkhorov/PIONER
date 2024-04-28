@@ -35,6 +35,20 @@
 
             <div class="container">
                 <h3 id="container-title">Выберите шаблон</h3>
+
+                <div class="loading-spinner" id="container-loading-spinner">
+                    <div class="cube-container">
+                        <div class="cube" style="--transform-Z: -25px;">
+                            <div class="face front" style="--transform-Z: 25px;"></div>
+                            <div class="face back" style="--transform-Z: 25px;"></div>
+                            <div class="face left" style="--transform-Z: 25px;"></div>
+                            <div class="face right" style="--transform-Z: 25px;"></div>
+                            <div class="face top" style="--transform-Z: 25px;"></div>
+                            <div class="face bottom" style="--transform-Z: 25px;"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <button id="update-templates-btn" onclick="loadDataAndProcess()" class="btn">Обновить</button>
 
                 <div id="templates-container"></div>
@@ -47,6 +61,34 @@
                 <span class="close-btn" onclick="hideNotification()">✖<br></span>
                 Сайт загружается слишком медленно. Хотите загрузить облегченную версию?
                 <button onclick="loadLightVersion()">Да</button>
+            </div>
+
+            <div class="overlay" id="overlay"></div>
+
+            <div class="delete-notification" id="delete-notification">
+                <div class="delete-notification-content">
+                    <p id="info-delete-notification">Вы уверены, что хотите удалить файл?</p>
+
+                    <div class="loading-spinner" id="del-msg-loading-spinner">
+                        <div class="cube-container">
+                            <div class="cube" style="--transform-Z: -15px;">
+                                <div class="face front" style="--transform-Z: 15px;"></div>
+                                <div class="face back" style="--transform-Z: 15px;"></div>
+                                <div class="face left" style="--transform-Z: 15px;"></div>
+                                <div class="face right" style="--transform-Z: 15px;"></div>
+                                <div class="face top" style="--transform-Z: 15px;"></div>
+                                <div class="face bottom" style="--transform-Z: 15px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="delete-notification-btn">
+                        <button  id="confirm-delete" onclick="confirmDeleteNotification()">Удалить</button>
+                        <button  id="cancel-delete" onclick="cancelDeleteNotification()">Отмена</button>
+                    </div>
+
+                    <span class="close" id="close-notification" onclick="closeDeleteNotification()">&times;</span>
+                </div>
             </div>
         </section>
     </main>

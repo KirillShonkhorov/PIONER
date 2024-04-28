@@ -264,10 +264,30 @@ class BffFastAPI:
         finally:
             logging.info("****Finish processing the 'delete_input_template' request****")
 
+    async def get_input_template_by_name(self, request: Request):
+        """
+        This method return input template by file name.
+        :exception: 508
+        :return: InputTemplateModel
+        """
+        logging.info("****Start processing the 'get_input_template_by_name' request****")
+        try:
+            data = await request.json()
+            file_name = data.get("InputFileName")
+
+            in_params = InputParamsModel(in_file=InputTemplateModel(file_name=file_name, file_content=""))
+            return await self.call_rpc("get_input_template_by_name", in_params.dict())
+
+        except Exception as error508:
+            logging.exception(f"BFF-FASTAPI_Server error: {error508}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error508}", 'status_code': 508})
+        finally:
+            logging.info("****Finish processing the 'get_input_template_by_name' request****")
+
     async def save_input_template(self, request: Request):
         """
         This method save input template in system.
-        :exception: 508
+        :exception: 509
         :return: None = success
         """
         logging.info("****Start processing the 'save_input_template' request****")
@@ -282,16 +302,16 @@ class BffFastAPI:
             logging.debug(f"Request return: {result}")
             return None
 
-        except Exception as error508:
-            logging.exception(f"BFF-FASTAPI_Server error: {error508}")
-            return Error(data={'details': f"BFF-FASTAPI_Server error: {error508}", 'status_code': 508})
+        except Exception as error509:
+            logging.exception(f"BFF-FASTAPI_Server error: {error509}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error509}", 'status_code': 509})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
     async def websocket_endpoint(self, websocket: WebSocket):
         """
         This method allows you to work with a websocket connection.
-        :exception: 508
+        :exception: Websocket exceptions
         :return: None = success
         """
         logging.info("****Start processing the 'websocket_endpoint' request****")
@@ -344,6 +364,11 @@ async def delete_input_template(request: Request):
     return await bff_fastapi.delete_input_template(request)
 
 
+@app.post("/get_input_template_by_name")
+async def get_input_template_by_name(request: Request):
+    return await bff_fastapi.get_input_template_by_name(request)
+
+
 @app.post("/save_input_template")
 async def save_input_template(request: Request):
     return await bff_fastapi.save_input_template(request)
@@ -365,7 +390,7 @@ if __name__ == '__main__':
     json_rpc_host = os.getenv('JSON_RPC_HOST', '0.0.0.0')
     json_rpc_port = os.getenv('JSON_RPC_PORT', 5000)
 
-    bff_fastapi_host = os.getenv('BFF_FASTAPI_HOST', '0.0.0.0')
+    bff_fastapi_host = os.getenv('BFF_FASTAPI_HOST', '192.168.0.12')
     bff_fastapi_port = os.getenv('BFF_FASTAPI_PORT', 8000)
 
     logging.info("+++++++++++++++++++++++++BFF-FASTAPI_Server was started+++++++++++++++++++++++++")

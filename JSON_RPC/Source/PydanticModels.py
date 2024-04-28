@@ -27,7 +27,7 @@ class FileParser(BaseModel):
     def parse_file(cls, file_path: str, **kwargs) -> List['FileParser']:
         """
         Parsing files from a folder and return them.
-        :exception: 508
+        :exception: 509
         :return: List[parse files in folder]
         """
         logging.info(f"\t\t****Starting parse a '{file_path}' file****\t\t")
@@ -45,9 +45,9 @@ class FileParser(BaseModel):
 
             return data
 
-        except Exception as error508:
-            logging.exception(f"JSON-RPC_Server error while parsing '{file_path}' file:\n{error508}")
-            raise Error(data={'details': f"JSON-RPC_Server error while parsing '{file_path}' file:\n{error508}", 'status_code': 508})
+        except Exception as error509:
+            logging.exception(f"JSON-RPC_Server error while parsing '{file_path}' file:\n{error509}")
+            raise Error(data={'details': f"JSON-RPC_Server error while parsing '{file_path}' file:\n{error509}", 'status_code': 509})
         finally:
             logging.info(f"\t\t****Finish parse a '{file_path}' file****\t\t")
 
