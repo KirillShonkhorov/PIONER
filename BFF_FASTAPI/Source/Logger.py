@@ -22,7 +22,6 @@ class Logger:
         :param data_format: Format of the log messages.
         :param date_format: Format of the date in log messages.
         """
-
         self.directory = directory
         self.file_name = file_name
         self.console_log = console_log

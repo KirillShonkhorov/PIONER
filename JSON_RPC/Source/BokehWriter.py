@@ -16,10 +16,8 @@ class BokehWriter:
     async def create_plots(cls, result: ProcessOutputModel) -> GraphsModel:
         """
         The method combines graphic elements.
-
         :return: ProcessOutputModel.graphs = GraphsModel
         """
-
         logging.info(f"\t****Start combines elements Bokeh****\t")
 
         displacements_graphs = await cls.create_displacements_plot(result.displacements)
@@ -33,11 +31,9 @@ class BokehWriter:
     async def create_displacements_plot(displacements_data) -> Dict[str, PlotModel]:
         """
         Draws graphic elements based on data from "Displacements".
-
         :exception: 509
         :return: Dict[displacements_file_name, PlotModel]
         """
-
         logging.info(f"\t\t****Start drawing 'Displacements' element Bokeh****\t\t")
 
         graphs = {}
@@ -74,11 +70,9 @@ class BokehWriter:
     async def create_stress_plot(stress_data) -> Dict[str, PlotModel]:
         """
         Draws graphic elements based on data from "Stress".
-
         :exception: 510
         :return: Dict[stress_file_name, PlotModel]
         """
-
         logging.info(f"\t\t****Start drawing 'Stress' element Bokeh****\t\t")
 
         graphs = {}

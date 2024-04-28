@@ -32,6 +32,13 @@ manager = ConnectionManager()
 
 class BffFastAPI:
     def __init__(self, rpc_server_ip='0.0.0.0', rpc_server_port=5000, local_ip='0.0.0.0', port=8000):
+        """
+        Initialize the BffFastAPI class with default IP and port values if they are not specified.
+        :param rpc_server_ip: The local IP address to which the JSON-RPC server will bind. The default is "0.0.0.0".
+        :param rpc_server_port: The port number to run the JSON-RPC server. Default is 5000.
+        :param local_ip: The local IP address to which the server will be bound. The default is "0.0.0.0".
+        :param port: The port number on which the server will be launched. Default is 8000.
+        """
         self.local_ip = self.get_local_ip(local_ip)
         self.port = port
         self.rpc_server_url = f"http://{self.get_local_ip(rpc_server_ip)}:{rpc_server_port}/api/v1/jsonrpc/"
@@ -41,6 +48,13 @@ class BffFastAPI:
 
     @staticmethod
     def get_local_ip(local_ip):
+        """
+        This method retrieves the local IP address. If a specific IP address is provided,
+        it returns that address; otherwise, it tries to determine the local IP address
+        using the socket library.
+        :param local_ip: The local IP address provided.
+        :return: The local IP address.
+        """
         if local_ip == '0.0.0.0':
             try:
                 ip_address = socket.gethostbyname(socket.gethostname())
@@ -51,8 +65,13 @@ class BffFastAPI:
             return local_ip
 
     async def get_html(self, request: Request):
+        """
+        This method is responsible for processing the 'get_html' request, which involves rendering an HTML template.
+        :exception: 500
+        :param request: The HTTP request object.
+        :return: A TemplateResponse object containing the rendered HTML template.
+        """
         logging.info("****Start processing the 'get_html' request****")
-
         try:
             return self.templates.TemplateResponse("selectTemplate.html", {"request": request})
         except Exception as error500:
@@ -62,21 +81,22 @@ class BffFastAPI:
             logging.info("****Finish processing the 'get_html' request****")
 
     async def call_rpc(self, method, in_params):
+        """
+        This method is responsible for making an RPC call to a specified method with given input parameters.
+        :exception: 400
+        :exception: 501
+        :param method: The name of the RPC method to call.
+        :param in_params: Input parameters for the RPC method.
+        :return: The result of the RPC call.
+        """
         logging.info(f"****Start processing the 'call_rpc' request.****\n"
                      f"Method: '{method}'\nInput Params: '{in_params}'\n")
 
         url = f"{self.rpc_server_url}{method}"
-
         headers = {'content-type': 'application/json'}
-        loc_json_rpc = {
-            "jsonrpc": "2.0",
-            "id": "0",
-            "method": method,
-            "params": in_params
-        }
-
+        json_rpc = JsonRpcModel(jsonrpc="2.0", id="0", method=method, params=in_params)
         try:
-            response = httpx.post(url, json=loc_json_rpc, headers=headers, timeout=None)
+            response = httpx.post(url, json=json_rpc.dict(), headers=headers, timeout=None)
             response.raise_for_status()
             response_data = response.json()
             logging.debug(f'Response for RPC was completed')
@@ -86,39 +106,45 @@ class BffFastAPI:
                 return response_data['result']
             else:
                 logging.warning("RPC response haven't a result!")
-                return Error(data={'details': f"RPC response haven't a result. Response description: {response_data}",
-                                   'status_code': 400})
+                return Error(data={'details': f"BFF-FASTAPI_Server error: {response_data}. RPC response haven't a result.", 'status_code': 400})
 
-        except Exception as error:
-            logging.exception(f'BFF-FASTAPI server error. RPC connection exception: {error}')
-            return Error(
-                data={'details': f"BFF-FASTAPI server error. RPC connection exception: {error}", 'status_code': 501})
+        except Exception as error501:
+            logging.exception(f'BFF-FASTAPI_Server error. RPC connection exception: {error501}')
+            return Error(data={'details': f"BFF-FASTAPI_Server error. RPC connection exception: {error501}", 'status_code': 501})
         finally:
-            logging.info(
-                f"****Finish processing the 'call_rpc' request.****\nMethod: '{method}'\nInput Params: '{in_params}'\n")
+            logging.info(f"****Finish processing the 'call_rpc' request.****\n"
+                         f"Method: '{method}'\nInput Params: '{in_params}'\n")
 
     async def light_app(self):
+        """
+        This method generates and returns HTML content.
+        :exception: 502
+        :return: An HTMLResponse object containing the generated HTML content
+        """
+        logging.info("****Start processing the 'light_app' request****")
         try:
-            logging.info("****Start processing the 'light_app' request****")
-
             file_input = FileInput()
             file_input.js_on_change('filename', await self.create_custom_js_callback(file_input))
 
-            script, div = components(file_input)
+            generated_script, generated_div = components(file_input)
 
-            return HTMLResponse(await self.generate_template(script, div))
+            return HTMLResponse(await self.generate_template(generated_script, generated_div))
 
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 507})
+        except Exception as error502:
+            logging.exception(f"BFF-FASTAPI_Server error: {error502}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error502}", 'status_code': 502})
         finally:
             logging.info("****Finish processing the 'light_app' request****")
 
     @staticmethod
     async def create_custom_js_callback(file_input):
+        """
+        This method generates a custom JavaScript callback function that interacts with a FileInput object.
+        :exception: 503
+        :return: A CustomJS object representing the custom JavaScript callback
+        """
+        logging.info("****Start processing the 'create_custom_js_callback' request****")
         try:
-            logging.info("****Start processing the 'create_custom_js_callback' request****")
-
             return CustomJS(args=dict(file_input=file_input), code="""
                     const fileName = file_input.filename;
                     const fileContent = file_input.value;
@@ -144,99 +170,64 @@ class BffFastAPI:
 
                     printFile();
                 """)
-
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 506})
+        except Exception as error503:
+            logging.exception(f"BFF-FASTAPI_Server error: {error503}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error503}", 'status_code': 503})
         finally:
             logging.info("****Finish processing the 'create_custom_js_callback' request****")
 
     @staticmethod
-    async def generate_template(gscripts, gdivs):
+    async def generate_template(generated_script, generated_div):
+        """
+        This method generates HTML from a ready template and returns the updated content.
+        :exception: 504
+        :return: HTML
+        """
+        logging.info("****Start processing the 'generate_template' request****")
         try:
-            logging.info("****Start processing the 'generate_template' request****")
+            with open("WebApplication/html/onePageApp.html", "r", encoding="utf-8") as file:
+                html_content = file.read()
 
-            return f"""
-                    <!DOCTYPE html>
-                    <html lang="en">
+            html_content = html_content.replace("<!-- INSERT_SCRIPTS_HERE -->", generated_script)
+            html_content = html_content.replace("<!-- INSERT_DIVS_HERE -->", generated_div)
 
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>PIONER</title>
+            return html_content
 
-                        <link rel="stylesheet" href="/static/css/styles.css">
-                    </head>
-
-                    <body>
-                        <header>
-                            <h1>Добро пожаловать в "PIONER"</h1>
-                            <nav>
-                                <ul>
-                                    <li><a href="/">Главная</a></li>
-                                    <li><a href="#">Информация</a></li>
-                                    <li><a href="#">Контакты</a></li>
-                                </ul>
-                            </nav>
-                        </header>
-
-                        <main>
-                            <section>
-                                <div id="error-container" class="notification">
-                                    <h1 id="notification-msg"></h1>
-                                </div>
-
-                                <div><h2>Страница выбора шаблона входного файла</h2></div>
-
-                                <div class="container">
-                                    <h3 id="container-title">Выберите шаблон</h3>
-
-                                    {gdivs}
-                                    <div id="templates-container"></div>
-                                </div>
-                            </section>
-                        </main>
-
-                        <footer>
-                            <p>&copy; 2024 Институт гидродинамики им. М.А. Лаврентьева СО РАН. Все права защищены.</p>
-                        </footer>
-
-                        <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.0.min.js"></script>
-                        <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.4.0.min.js"></script>
-                        <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.4.0.min.js"></script>
-                        {gscripts}                
-                    </body>
-
-                    </html>
-                    """
-
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 504})
+        except Exception as error504:
+            logging.exception(f"BFF-FASTAPI_Server error: {error504}")
+            return Error(data={'details': f"BFF-FASTAPI_Server server error: {error504}", 'status_code': 504})
         finally:
             logging.info("****Finish processing the 'generate_template' request****")
 
     async def create_content(self, input_content):
+        """
+        This method generates the page content and returns the content.
+        :exception: 505
+        :return: update HTML
+        """
+        print(input_content)
+        logging.info("****Start processing the 'create_content' request****")
         try:
-            logging.info("****Start processing the 'create_content' request****")
-
             file_content = await self.decode_data(input_content['fileContent'])
             new_content = PreText(text=file_content)
 
             return json.dumps(json_item(new_content, "templates-container"))
 
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 508})
+        except Exception as error505:
+            logging.exception(f"BFF-FASTAPI_Server error: {error505}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error505}", 'status_code': 505})
         finally:
             logging.info("****Finish processing the 'create_content' request****")
 
     @staticmethod
     async def decode_data(input_data):
+        """
+        Decode input Base64-encoded data.
+        :exception: 506
+        :return: Decoded text data.
+        """
+        logging.info("****Start processing the 'decode_data' request****")
         try:
-            logging.info("****Start processing the 'decode_data' request****")
-
             decoded = b64decode(input_data)
             f = io.BytesIO(decoded)
             text_obj = io.TextIOWrapper(f, encoding='utf-8')
@@ -244,89 +235,86 @@ class BffFastAPI:
 
             return output_data
 
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 509})
+        except Exception as error506:
+            logging.exception(f"BFF-FASTAPI_Server error: {error506}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error506}", 'status_code': 506})
         finally:
             logging.info("****Finish processing the 'decode_data' request****")
 
     async def delete_input_template(self, request: Request):
+        """
+        This method delete input template by file name.
+        :exception: 507
+        :return: None = success
+        """
+        logging.info("****Start processing the 'delete_input_template' request****")
         try:
-            logging.info("****Start processing the 'delete_input_template' request****")
-
             data = await request.json()
             file_name = data.get("fileName")
 
-            in_params = {
-                "in_file": {
-                    "fileName": file_name,
-                }
-            }
+            in_params = InputParamsModel(in_file=InputTemplateModel(file_name=file_name, file_content=""))
 
-            if await self.call_rpc("delete_input_template", in_params):
+            if await self.call_rpc("delete_input_template", in_params.dict()):
                 logging.debug("Request return: True")
                 return None
 
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 502})
+        except Exception as error507:
+            logging.exception(f"BFF-FASTAPI_Server error: {error507}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error507}", 'status_code': 507})
         finally:
             logging.info("****Finish processing the 'delete_input_template' request****")
 
     async def save_input_template(self, request: Request):
+        """
+        This method save input template in system.
+        :exception: 508
+        :return: None = success
+        """
+        logging.info("****Start processing the 'save_input_template' request****")
         try:
-            logging.info("****Start processing the 'save_input_template' request****")
-
             data = await request.json()
             file_name = data.get("fileName")
             file_content = data.get("fileContent")
 
-            in_params = {
-                "in_file": {
-                    "fileName": file_name,
-                    "fileContent": file_content
-                }
-            }
+            in_params = InputParamsModel(in_file=InputTemplateModel(file_name=file_name, file_content=file_content))
 
-            result = await self.call_rpc("save_input_template", in_params)
+            result = await self.call_rpc("save_input_template", in_params.dict())
             logging.debug(f"Request return: {result}")
-            return result is None
+            return None
 
-        except Exception as error:
-            logging.exception(f"BFF-FASTAPI server error: {error}")
-            return Error(data={'details': f"BFF-FASTAPI server error: {error}", 'status_code': 505})
+        except Exception as error508:
+            logging.exception(f"BFF-FASTAPI_Server error: {error508}")
+            return Error(data={'details': f"BFF-FASTAPI_Server error: {error508}", 'status_code': 508})
         finally:
             logging.info("****Finish processing the 'save_input_template' request****")
 
     async def websocket_endpoint(self, websocket: WebSocket):
+        """
+        This method allows you to work with a websocket connection.
+        :exception: 508
+        :return: None = success
+        """
         logging.info("****Start processing the 'websocket_endpoint' request****")
-
         try:
             await manager.connect(websocket)
-        except Exception as error:
+        except Exception as connect_error:
             await manager.disconnect(websocket)
-            logging.exception(f"WebSocket was disconnected. Exception: {error}")
+            logging.exception(f"WebSocket was disconnected. Exception: {connect_error}")
 
         try:
             while True:
                 data = await websocket.receive_text()
                 logging.debug(f"Received data from WebSocket: {data}")
 
-                in_params = {
-                    "in_file": {
-                        "fileName": data
-                    }
-                }
-
-                rpc_data = await self.call_rpc("run_selected_template", in_params)
-
+                in_params = InputParamsModel(in_file=InputTemplateModel(file_name=data, file_content=""))
+                rpc_data = await self.call_rpc("run_selected_template", in_params.dict())
                 await websocket.send_text(json.dumps(rpc_data))
 
         except WebSocketDisconnect:
             await manager.disconnect(websocket)
             logging.exception("The client has disconnected. Cleaned up")
-        except Exception as e:
-            logging.exception(f"WebSocket Exception: {e}")
+        except Exception as websocket_error:
+            logging.exception(f"WebSocket Exception: {websocket_error}")
         finally:
             logging.info("****Finish processing the 'websocket_endpoint' request****")
 
@@ -374,19 +362,15 @@ async def websocket_endpoint(websocket: WebSocket):
 if __name__ == '__main__':
     logger = Logger("Log", "BFF-FASTAPI_Server.log", True)
 
-    json_rpc_host = '0.0.0.0'
+    json_rpc_host = os.getenv('JSON_RPC_HOST', '0.0.0.0')
     json_rpc_port = os.getenv('JSON_RPC_PORT', 5000)
 
     bff_fastapi_host = os.getenv('BFF_FASTAPI_HOST', '0.0.0.0')
     bff_fastapi_port = os.getenv('BFF_FASTAPI_PORT', 8000)
 
-    try:
-        json_rpc_host = socket.gethostbyname('json_rpc')
-    except Exception as error:
-        logging.exception(f"BFF-FASTAPI_Server error: {error}. Couldn't find environment")
+    logging.info("+++++++++++++++++++++++++BFF-FASTAPI_Server was started+++++++++++++++++++++++++")
 
     bff_fastapi = BffFastAPI(json_rpc_host, int(json_rpc_port), bff_fastapi_host, int(bff_fastapi_port))
 
-    logging.info("+++++++++++++++++++++++++BFF-FASTAPI_Server was started+++++++++++++++++++++++++")
     uvicorn.run(app, host=bff_fastapi.local_ip, port=bff_fastapi.port, access_log=True)
     logging.info("-------------------------BFF-FASTAPI_Server was stopped-------------------------")

@@ -23,27 +23,21 @@ class JSONRPC:
     def __init__(self, local_ip='0.0.0.0', port=5000):
         """
         Initialize JSONRPC class with default IP and port values if not provided.
-
         :param local_ip: The local IP address to bind the server to. Default is '0.0.0.0'.
         :param port: The port number to run the server on. Default is 5000.
         """
-
         self.local_ip = self.get_local_ip(local_ip)
         self.port = port
 
     @staticmethod
     def get_local_ip(local_ip):
         """
-        Get the local IP address.
-
         This method retrieves the local IP address. If a specific IP address is provided,
         it returns that address; otherwise, it tries to determine the local IP address
         using the socket library.
-
         :param local_ip: The local IP address provided.
         :return: The local IP address.
         """
-
         if local_ip == '0.0.0.0':
             try:
                 ip_address = socket.gethostbyname(socket.gethostname())
@@ -58,11 +52,9 @@ class JSONRPC:
         """
         Retrieve a list of InputTemplateModel objects.
         This method is used to obtain data from all existing templates.
-
         :exception: 500
         :return: InputTemplateListModel object containing a list of InputTemplateModel objects.
         """
-
         logging.info("****Start processing the 'get_input_templates' request****")
 
         templates_list = InputTemplateListModel(templates=[])
@@ -88,12 +80,10 @@ class JSONRPC:
     async def delete_input_template(self, in_file: InputTemplateModel):
         """
         Delete the specified input template file.
-    
         :exception: 501
         :exception: 400
         :param in_file: The InputTemplateModel object representing the file to be deleted.
         """
-        
         logging.info("****Start processing the 'delete_input_template' request****")
 
         file_path = f"InputTemplates/{in_file.file_name}"
@@ -114,13 +104,11 @@ class JSONRPC:
     async def check_file(file_name, status_code, request):
         """
         Check if the specified file exists.
-
         :param file_name: The name of the file to check.
         :param status_code: The status code to raise if the file does not exist.
         :param request: The name of the request being processed.
         :return: True if the file exists, otherwise raise an Error.
         """
-
         if not os.path.exists(file_name):
             logging.exception(f"The file '{file_name}' was not found. {status_code}")
             logging.info(f"****Finish processing the '{request}' request****")
@@ -132,11 +120,9 @@ class JSONRPC:
     async def save_input_template(in_file: InputTemplateModel):
         """
         Save the input template file.
-
         :exception: 502
         :param in_file: The InputTemplateModel object representing the file to be saved.
         """
-
         logging.info("****Start processing the 'save_input_template' request****")
 
         file_path = f"InputTemplates/{in_file.file_name}"
@@ -155,13 +141,11 @@ class JSONRPC:
     async def run_selected_template(self, in_file: InputTemplateModel) -> ProcessOutputModel:
         """
         Run the selected template.
-
         :exception: 401
         :exception: 503
         :param in_file: The InputTemplateModel object representing the selected template file.
         :return: The ProcessOutputModel object containing the result of running the template.
         """
-
         logging.info("****Start processing the 'run_selected_template' request****")
 
         if await self.check_file(f"InputTemplates/{in_file.file_name}", 401, "run_selected_template"):
@@ -185,13 +169,11 @@ class JSONRPC:
     async def run_pioner(self) -> ProcessOutputModel:
         """
         Run PIONER application.
-
         :exception: 504
         :exception: 505
         :exception: 506
         :return: The ProcessOutputModel object containing the result of running the application.
         """
-
         logging.info("****Start processing the 'run_pioner' request****")
 
         if await self.check_file("input.txt", 504, "run_pioner"):
@@ -228,11 +210,9 @@ class JSONRPC:
     async def process_files_in_folder(folder: str, model_class: type) -> Dict[str, List[FileParser]]:
         """
         Reading files from a folder and parsing them.
-
         :exception: 507
         :return: Dict {folder name: List[files in folder]}
         """
-
         logging.info(f"\t****Starting read a '{folder}' folder****\t")
 
         data = {}
@@ -257,14 +237,10 @@ class JSONRPC:
 
     async def run_fc_2022initstrss(self):
         """
-        Run the FC_2022initStrss.exe process.
-
         This method starts the FC_2022initStrss.exe process, which initializes
         the output files.
-
         :raises: subprocess.CalledProcessError: If the process execution fails.
         """
-
         await self.remove_files_and_folders()
 
         logging.info('FC_2022initStrss.exe IS STARTED')
@@ -274,10 +250,7 @@ class JSONRPC:
     @staticmethod
     async def remove_files_and_folders():
         """
-        Remove specified files and folders.
-
         This method removes the files and folders specified in the items_to_remove list.
-
         :raises: Exception: If an error occurs while deleting files or folders.
         """
 

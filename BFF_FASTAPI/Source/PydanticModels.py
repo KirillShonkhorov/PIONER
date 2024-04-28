@@ -5,6 +5,7 @@ Purpose: [All Pydantic data models used in the microservice.]
 """
 
 import fastapi_jsonrpc as jsonrpc
+from fastapi import Body
 from pydantic import BaseModel
 
 
@@ -23,5 +24,17 @@ class IpAddressModel(BaseModel):
     port: int
 
 
-class HeaderHttpModel(BaseModel):
-    content-type
+class JsonRpcModel(BaseModel):
+    jsonrpc: str
+    id: str
+    method: str
+    params: dict
+
+
+class InputTemplateModel(BaseModel):
+    file_name: str = Body(..., examples=["template.txt"])
+    file_content: str = Body(..., examples=["content"])
+
+
+class InputParamsModel(BaseModel):
+    in_file: InputTemplateModel

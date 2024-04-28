@@ -1,11 +1,12 @@
-task_list.txt
-echo_output.txt
-iteration_statistic.txt
+/task_list.txt
+/JSON_RPC/Source/echo_output.txt
+/JSON_RPC/Source/iteration_statistic.txt
 
-.idea/
-Displacements/
-Failure/
-Log/
-Patran/
-Stress/
-StressRotated/
+/.idea/
+/JSON_RPC/Source/Displacements/
+/JSON_RPC/Source/Failure/
+/JSON_RPC/Source/Log/
+/JSON_RPC/Source/Patran/
+/JSON_RPC/Source/Stress/
+/JSON_RPC/Source/StressRotated/
+/BFF_FASTAPI/Source/Log/

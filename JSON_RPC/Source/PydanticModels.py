@@ -27,11 +27,9 @@ class FileParser(BaseModel):
     def parse_file(cls, file_path: str, **kwargs) -> List['FileParser']:
         """
         Parsing files from a folder and return them.
-
         :exception: 508
         :return: List[parse files in folder]
         """
-
         logging.info(f"\t\t****Starting parse a '{file_path}' file****\t\t")
 
         data = []

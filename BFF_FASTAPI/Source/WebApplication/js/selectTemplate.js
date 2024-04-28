@@ -115,19 +115,18 @@ async function loadDataAndProcess() {
         const answer = await response.json();
 
         const { templatesContainer, noTemplatesMsg, createTemplateBtn } = await loadDOMElements();
-
         await removeAllChildElements(templatesContainer);
 
         if (await answer.data && await answer.data.status_code) {
             await handleError(`Сервер не вернул ответ.<br>Детали: ${await answer.data.details}`);
         } else {
-            if (Object.keys(answer).length === 0) {
+            if (answer.templates.length === 0) {
                 noTemplatesMsg.style.display = createTemplateBtn.style.display = 'block';
             } else {
                 noTemplatesMsg.style.display = createTemplateBtn.style.display = 'none';
 
-                for (const [fileName, fileContent] of Object.entries(answer)) {
-                    const fileDiv = await createFileDiv(fileName, fileContent);
+                for (const [, fileContent] of Object.entries(answer.templates)) {
+                    const fileDiv = await createFileDiv(fileContent.file_name, fileContent.file_content);
                     await templatesContainer.appendChild(fileDiv);
                 }
             }

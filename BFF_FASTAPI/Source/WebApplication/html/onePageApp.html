@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIONER</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>Добро пожаловать в "PIONER"</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Главная</a></li>
+                <li><a href="#">Информация</a></li>
+                <li><a href="#">Контакты</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <div id="error-container" class="notification">
+                <h1 id="notification-msg"></h1>
+            </div>
+
+            <div><h2>Страница выбора шаблона входного файла</h2></div>
+
+            <div class="container">
+                <h3 id="container-title">Выберите шаблон</h3>
+                <!-- INSERT_DIVS_HERE -->
+
+                <div id="templates-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Институт гидродинамики им. М.А. Лаврентьева СО РАН. Все права защищены.</p>
+    </footer>
+
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.4.0.min.js"></script>
+    <script src="/static/js/bokeh-3.4.0.min.js" async></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.4.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.4.0.min.js"></script>
+    <!-- INSERT_SCRIPTS_HERE -->
+</body>
+
+</html>

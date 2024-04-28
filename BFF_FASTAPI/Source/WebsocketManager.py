@@ -12,16 +12,12 @@ from fastapi.websockets import WebSocketState, WebSocketDisconnect
 
 class ConnectionManager:
     def __init__(self):
-        """
-        Initializes ConnectionManager with an empty set of connections.
-        """
-
+        """Initializes ConnectionManager with an empty set of connections."""
         self.connections = set()
 
     async def connect(self, websocket: WebSocket):
         """
         Accepts a WebSocket connection and adds it to the set of connections.
-
         :param websocket: The WebSocket connection object.
         """
 
@@ -33,10 +29,8 @@ class ConnectionManager:
     async def disconnect(websocket: WebSocket):
         """
         Closes a WebSocket connection if it's not already disconnected.
-
         :param websocket: The WebSocket connection object.
         """
-
         if websocket.client_state != WebSocketState.DISCONNECTED:
             await websocket.close()
             logging.info('WebSocket disconnected')
@@ -46,12 +40,10 @@ class ConnectionManager:
     async def send_message(self, message: str, websocket: WebSocket):
         """
         Sends a message over the WebSocket connection.
-
         :exception: If connection is disconnected.
         :param message: The message to be sent.
         :param websocket: The WebSocket connection object.
         """
-
         try:
             await websocket.send_text(message)
             logging.info(f'WebSocket sent message "{message}"')
@@ -63,10 +55,8 @@ class ConnectionManager:
     async def broadcast(self, message: str):
         """
         Broadcasts a message to all connected WebSocket clients.
-
         :param message: The message to be broadcast.
         """
-
         for connection in self.connections:
             await self.send_message(message, connection)
             logging.info(f'WebSocket broadcast sent a message "{message}"')
