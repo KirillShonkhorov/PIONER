@@ -11,6 +11,33 @@
 </head>
 
 <body>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="loading-spinner" id="loading-spinner">
+        <div class="cube-container">
+            <div class="cube" style="--transform-Z: -25px;">
+                <div class="face front" style="--transform-Z: 25px;"></div>
+                <div class="face back" style="--transform-Z: 25px;"></div>
+                <div class="face left" style="--transform-Z: 25px;"></div>
+                <div class="face right" style="--transform-Z: 25px;"></div>
+                <div class="face top" style="--transform-Z: 25px;"></div>
+                <div class="face bottom" style="--transform-Z: 25px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-notification" id="custom-notification">
+        <div class="custom-notification-content">
+            <p id="info-custom-notification">Файл с таким именем уже существует, перезаписать?</p>
+
+            <div class="custom-notification-btn">
+                <button  id="confirm-notification">Перезаписать</button>
+                <button  id="cancel-notification">Отмена</button>
+            </div>
+
+            <span class="close" id="close-notification">&times;</span>
+        </div>
+    </div>
 
     <header>
         <h1>Добро пожаловать в "PIONER"</h1>
@@ -37,12 +64,12 @@
 
                 <div class="file-data-container">
                     <label for="file-name">Имя файла:</label>
-                    <input type="text" id="file-name" name="fileName" value="placeholder_file_name" maxlength="200">
+                    <input type="text" id="file-name" name="fileName" maxlength="200">
                 </div>
 
                 <div class="file-data-container">
                     <label for="file-content">Содержимое файла:</label>
-                    <textarea id="file-content" name="fileContent" oninput="adjustTextareaHeight(this)">placeholder_file_content</textarea>
+                    <textarea id="file-content" name="fileContent" oninput="adjustTextareaHeight(this)"></textarea>
                 </div>
 
                 <button id="save-run-btn" class="btn" style="display: none;" onclick="saveAndRunTemplate()">Сохранить и выполнить</button>

@@ -207,6 +207,7 @@ textarea#file-content {
     resize: both;
     max-width: 100%; /* Контент будет занимать максимально доступную ширину родительского элемента */
     white-space: pre;
+    max-height: 800px;
 }
 
 
@@ -327,6 +328,7 @@ td:hover {
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: none; /* Уведомление изначально скрыто */
+    z-index: 1000;
 }
 
 .close-btn {
@@ -348,10 +350,10 @@ td:hover {
     font-size: 14px;
 }
 
-.delete-notification{
+.custom-notification{
     text-align: center;
     border: 2px solid #b00002;
-    background-color: rgba(244, 67, 54, 0.8); /* Красный цвет с прозрачностью 50% */
+    background-color: rgba(244, 67, 54, 0.8); /* Красный цвет с прозрачностью 20% */
     color: white;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -364,14 +366,14 @@ td:hover {
     z-index: 1000;
 }
 
-.delete-notification-content{
+.custom-notification-content{
     font-size: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.delete-notification-content p{
+.custom-notification-content p{
     margin-top: 0px;
     margin-left: 20px;
     margin-right: 20px;
@@ -386,7 +388,7 @@ td:hover {
     font-size: 24px; /* Измените размер крестика по вашему желанию */
 }
 
-.delete-notification-btn button{
+.custom-notification-btn button{
     background-color: #2e7d32; /* Темно-зеленый */
     color: #fff;
     border: 2px solid #388e3c; /* Толщина и цвет границы */
@@ -398,7 +400,7 @@ td:hover {
     transition: background-color 0.3s;
 }
 
-.delete-notification-btn button:hover {
+.custom-notification-btn button:hover {
     background-color: #388e3c; /* Светло-зеленый при наведении */
 }
 
@@ -414,25 +416,15 @@ td:hover {
 }
 
 .loading-spinner {
-  display: none;
-}
-
-#container-loading-spinner{
+    display: none;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    position: inherit;
+    position: fixed;
     width: 50px;
     height: 50px;
-    margin: 40px; /* Установите отступ по вашему усмотрению */
     perspective: 300px; /* Перспектива также является переменной */
-}
-
-#del-msg-loading-spinner{
-    width: 30px;
-    height: 30px;
-    margin: 20px; /* Установите отступ по вашему усмотрению */
-    perspective: 180px; /* Перспектива также является переменной */
+    z-index: 1000;
 }
 
 .cube-container {
@@ -452,6 +444,7 @@ td:hover {
 }
 
 .face {
+  box-shadow: 0px 0px 30px #fff;
   position: absolute;
   width: 100%;
   height: 100%;
@@ -511,17 +504,21 @@ td:hover {
     nav ul li {margin-right: 8px;}
     .container {padding: 10px;}
     .container h3 {word-break: normal;}
-    .btn {padding: 10px; margin-bottom: 8px; font-size: 14px;}
+    .btn {padding: 10px; margin: 8px 8px 5px 0px; font-size: 14px;}
     #update-templates-btn {margin-bottom: 0px;}
     .file {padding: 8px;}
     #no-templates-msg {margin: 20px; font-size: 18px;}
     #error-container {margin: 20px; padding: 8px;}
     #error-container h1 {font-size: 18px; margin: 0px;}
     .load-notification {width: 90%;}
+    .load-notification button {padding: 3px 15px;}
+    .custom-notification{width: 90%; padding: 4px;}
+    .custom-notification-content{font-size: 16px;}
+
 
     .file-data-container {padding: 10px;}
     .file-data-container label {font-size: 16px;}
     .file-data-container input[type="text"],
-    textarea#file-content { padding: 5px; margin-bottom: 0px; font-size: 14px;}
+    textarea#file-content { padding: 5px; margin-bottom: 0px; font-size: 14px; max-height: 400px;}
 }
 

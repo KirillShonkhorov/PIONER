@@ -1,31 +1,30 @@
-// Функция для загрузки всех элементов DOM
-async function loadDOMElements() {
-    const getElement = id => document.getElementById(id);
-    return await {
-        notificationContainer: getElement('error-container'),
-        notificationMsg: getElement('notification-msg'),
-        templatesContainer: getElement('templates-container'),
-        noTemplatesMsg: getElement('no-templates-msg'),
-        createTemplateBtn: getElement('create-template-btn'),
-        deleteNotification: getElement('delete-notification'),
-        closeSpan: getElement('close-notification'),
-        confirmDeleteButton: getElement('confirm-delete'),
-        cancelDeleteButton: getElement('cancel-delete'),
-        infoDeleteText: getElement('info-delete-notification'),
-        overlay: getElement('overlay'),
-        delMsgLoadingSpinner: getElement('del-msg-loading-spinner'),
-        containerLoadingSpinner: getElement('container-loading-spinner')
-    };
-}
+const elements = {
+    notificationContainer: document.getElementById('error-container'),
+    notificationMsg: document.getElementById('notification-msg'),
+    templatesContainer: document.getElementById('templates-container'),
+    noTemplatesMsg: document.getElementById('no-templates-msg'),
+    createTemplateBtn: document.getElementById('create-template-btn'),
+    customNotification: document.getElementById('custom-notification'),
+    closeSpan: document.getElementById('close-notification'),
+    confirmNotificationButton: document.getElementById('confirm-notification'),
+    cancelNotificationButton: document.getElementById('cancel-notification'),
+    infoNotification: document.getElementById('info-custom-notification'),
+    overlay: document.getElementById('overlay'),
+    loadingSpinner: document.getElementById('loading-spinner'),
+    loadNotification: document.getElementById('load-notification'),
+    createTemplateBtn: document.getElementById('create-template-btn'),
+    loadNotificationCloseBtn: document.getElementById('close-btn'),
+    loadLightAppBtn: document.getElementById('load-light-app-btn'),
+};
 
-// Функция для удаления всех дочерних элементов из контейнера
-async function removeAllChildElements(container) {
-    while (container.firstChild) {
-        container.removeChild(container.firstChild);
-    }
-}
+elements.createTemplateBtn.addEventListener('click', async () => {window.location.href = "static/html/index.html";});
+elements.loadNotificationCloseBtn.addEventListener('click', async () => {elements.loadNotification.style.display = 'none';});
+elements.loadLightAppBtn.addEventListener('click', async () => {window.location.href = '/light_app';});
+elements.confirmNotificationButton.addEventListener('click', confirmNotification);
+elements.cancelNotificationButton.addEventListener('click', async () => {elements.overlay.style.display = 'none'; elements.customNotification.style.display = 'none';});
+elements.closeSpan.addEventListener('click', async () => {elements.overlay.style.display = 'none'; elements.customNotification.style.display = 'none';});
 
-// Функция для создания дочернего элемента, представляющего файл
+
 async function createFileDiv(fileName, fileContent) {
     const fileDiv = document.createElement('div');
     fileDiv.classList.add('file');
@@ -42,156 +41,92 @@ async function createFileDiv(fileName, fileContent) {
     fileContentPre.textContent = fileContent;
     innerDiv.appendChild(fileContentPre);
 
-    const selectBtn = await createSelectButton(fileName, fileContent);
+    const selectBtn = await createButton('Выбрать шаблон', async () => {
+        window.location.href = `/static/html/editTemplate.html?fileName=${encodeURIComponent(fileName)}`;
+    });
     innerDiv.appendChild(selectBtn);
 
-    const deleteBtn = await createDeleteButton(fileName);
+    const deleteBtn = await createButton('Удалить шаблон', async () => {
+        elements.overlay.style.display = 'block';
+        elements.infoNotification.innerHTML = `Вы уверены, что хотите удалить файл "${fileName}"?`
+        elements.customNotification.style.display = 'block';
+    });
     innerDiv.appendChild(deleteBtn);
 
-    const hideBtn = await createHideButton(innerDiv);
-    fileDiv.appendChild(hideBtn);
-
-    fileDiv.appendChild(innerDiv);
-
-    return await fileDiv;
-}
-
-// Функция для создания кнопки выбора файла
-async function createHideButton(innerDiv) {
-    const HideBtn = document.createElement('button');
-    HideBtn.classList.add('btn');
-    HideBtn.textContent = 'Показать';
-    HideBtn.addEventListener('click', async function () {
+    const hideBtn = await createButton('Показать', async () => {
         if (innerDiv.style.display === "none") {
-            HideBtn.textContent = 'Скрыть';
+            hideBtn.textContent = 'Скрыть';
             innerDiv.style.display = "block";
         } else {
-            HideBtn.textContent = 'Показать';
+            hideBtn.textContent = 'Показать';
             innerDiv.style.display = "none";
         }
     });
-    return await HideBtn;
+    fileDiv.appendChild(hideBtn);
+    fileDiv.appendChild(innerDiv);
+
+    return fileDiv;
 }
 
-// Функция для создания кнопки удаления файла
-async function createDeleteButton(fileName) {
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Удалить шаблон';
-    deleteBtn.classList.add('btn');
-    deleteBtn.addEventListener('click', async function () {
-        const {deleteNotification, infoDeleteText, overlay } = await loadDOMElements();
-
-        overlay.style.display = 'block';
-        infoDeleteText.innerHTML = `Вы уверены, что хотите удалить файл "${fileName}"?`
-        deleteNotification.style.display = 'block';
-    });
-    return await deleteBtn;
+async function createButton(text, onClick) {
+    const button = document.createElement('button');
+    button.classList.add('btn');
+    button.textContent = text;
+    button.addEventListener('click', onClick);
+    return button;
 }
 
-// Функция для создания кнопки выбора файла
-async function createSelectButton(fileName, fileContent) {
-    const selectBtn = document.createElement('button');
-    selectBtn.textContent = 'Выбрать шаблон';
-    selectBtn.classList.add('btn');
-    selectBtn.addEventListener('click', async function () {
-        window.location.href = `/static/html/editTemplate.html?fileName=${encodeURIComponent(fileName)}`;
-    });
-    return await selectBtn;
-}
-
-let dataProcessed = false;
-
-// Функция для загрузки и обработки данных
 async function loadDataAndProcess() {
     try {
-        const { templatesContainer, noTemplatesMsg, createTemplateBtn, containerLoadingSpinner } = await loadDOMElements();
-        containerLoadingSpinner.style.display = 'block';
+        elements.overlay.style.display = 'block';
+        elements.loadingSpinner.style.display = 'block';
 
         const response = await fetch('/get_input_templates');
         const answer = await response.json();
 
-        await removeAllChildElements(templatesContainer);
+        elements.templatesContainer.innerHTML = '';
 
-        if (await answer.data && await answer.data.status_code) {
-            await handleError(`Сервер не вернул ответ.<br>Детали: ${await answer.data.details}`);
+        if (answer.data && answer.data.status_code) {
+            handleError(`Сервер не вернул ответ.<br>Детали: ${answer.data.details}`);
         } else {
             if (answer.templates.length === 0) {
-                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'block';
+                 elements.noTemplatesMsg.style.display = elements.createTemplateBtn.style.display = 'block';
             } else {
-                noTemplatesMsg.style.display = createTemplateBtn.style.display = 'none';
+                elements.noTemplatesMsg.style.display = elements.createTemplateBtn.style.display = 'none';
 
                 for (const [, fileContent] of Object.entries(answer.templates)) {
                     const fileDiv = await createFileDiv(fileContent.file_name, fileContent.file_content);
-                    await templatesContainer.appendChild(fileDiv);
+                    elements.templatesContainer.appendChild(fileDiv);
                 }
             }
         }
-        dataProcessed = true;
-        containerLoadingSpinner.style.display = 'none';
+        elements.loadingSpinner.style.display = 'none';
+        elements.overlay.style.display = 'none';
     } catch (error) {
-        await handleError(error);
+        handleError(error);
     }
 }
 
-// Загрузка данных и обработка после загрузки DOM
 window.onload = async function () {
     try {
-        // Установить таймер для отображения уведомления о долгой загрузке
         const timeoutPromise = new Promise((resolve) => {
             setTimeout(async () => {
-                if (!dataProcessed) {
-                    await showNotification();
-                }
+                elements.loadNotification.style.display = "block";
                 resolve();
-            }, 5000); // Время в миллисекундах (в данном случае 3 секунды)
+            }, 5000);
         });
-
-        // Выполнить запрос на получение данных и таймер параллельно
         await Promise.all([loadDataAndProcess(), timeoutPromise]);
     } catch (error) {
         await handleError(error);
     }
 };
 
-// Функция для создания нового шаблона
-async function createNewTemplate() {
-    window.location.href = "static/html/index.html";
-}
-
-// Функция для отображения уведомления
-async function showNotification() {
-    document.getElementById("load-notification").style.display = "block";
-}
-
-// Функция для загрузки облегченной версии сайта
-async function loadLightVersion() {
-    window.location.href = '/light_app';
-}
-
-async function hideNotification() {
-    const notification = document.getElementById('load-notification');
-    notification.style.display = 'none';
-}
-
-async function closeDeleteNotification() {
-    const {deleteNotification, overlay } = await loadDOMElements();
-    overlay.style.display = 'none';
-    deleteNotification.style.display = 'none';
-}
-
-async function cancelDeleteNotification() {
-    const {deleteNotification, overlay} = await loadDOMElements();
-    overlay.style.display = 'none';
-    deleteNotification.style.display = 'none';
-}
-
-async function confirmDeleteNotification() {
-    const {deleteNotification, infoDeleteText, overlay, delMsgLoadingSpinner } = await loadDOMElements();
-
+async function confirmNotification() {
     try {
-        delMsgLoadingSpinner.style.display = 'block';
+        elements.customNotification.style.display = 'none';
+        elements.loadingSpinner.style.display = 'block';
 
-        const htmlContent = infoDeleteText.innerHTML;
+        const htmlContent = elements.infoNotification.innerHTML;
         const matches = htmlContent.match(/"(.*?)"/);
 
         if (matches && matches.length > 1) {
@@ -204,25 +139,17 @@ async function confirmDeleteNotification() {
                 },
                 body: JSON.stringify({ fileName })
             });
-
             if (!response.ok) {
-                await handleError(`Не удалось удалить шаблон.<br>Детали: ${await response.text}`);
+                handleError(`Не удалось удалить шаблон.<br>Детали: ${await response.text}`);
             }
             await loadDataAndProcess();
         }
     } catch (error) {
-        await handleError(`Не удалось удалить шаблон.<br>Детали: ${error}`);
+        handleError(`Не удалось удалить шаблон.<br>Детали: ${error}`);
     }
-
-    delMsgLoadingSpinner.style.display = 'none';
-    overlay.style.display = 'none';
-    deleteNotification.style.display = 'none';
 }
 
-
-// Функция для обработки ошибок
 async function handleError(error) {
-    const { notificationContainer, notificationMsg } = await loadDOMElements();
-    notificationMsg.innerHTML = error;
-    notificationContainer.style.display = 'block';
+    elements.notificationMsg.innerHTML = error;
+    elements.notificationContainer.style.display = 'block';
 }

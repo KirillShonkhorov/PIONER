@@ -273,7 +273,7 @@ class BffFastAPI:
         logging.info("****Start processing the 'get_input_template_by_name' request****")
         try:
             data = await request.json()
-            file_name = data.get("InputFileName")
+            file_name = data.get("fileName")
 
             in_params = InputParamsModel(in_file=InputTemplateModel(file_name=file_name, file_content=""))
             return await self.call_rpc("get_input_template_by_name", in_params.dict())

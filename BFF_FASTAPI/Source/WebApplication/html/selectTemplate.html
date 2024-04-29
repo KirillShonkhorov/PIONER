@@ -12,6 +12,20 @@
 </head>
 
 <body>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="loading-spinner" id="loading-spinner">
+        <div class="cube-container">
+            <div class="cube" style="--transform-Z: -25px;">
+                <div class="face front" style="--transform-Z: 25px;"></div>
+                <div class="face back" style="--transform-Z: 25px;"></div>
+                <div class="face left" style="--transform-Z: 25px;"></div>
+                <div class="face right" style="--transform-Z: 25px;"></div>
+                <div class="face top" style="--transform-Z: 25px;"></div>
+                <div class="face bottom" style="--transform-Z: 25px;"></div>
+            </div>
+        </div>
+    </div>
 
     <header>
         <h1>Добро пожаловать в "PIONER"</h1>
@@ -35,59 +49,30 @@
 
             <div class="container">
                 <h3 id="container-title">Выберите шаблон</h3>
-
-                <div class="loading-spinner" id="container-loading-spinner">
-                    <div class="cube-container">
-                        <div class="cube" style="--transform-Z: -25px;">
-                            <div class="face front" style="--transform-Z: 25px;"></div>
-                            <div class="face back" style="--transform-Z: 25px;"></div>
-                            <div class="face left" style="--transform-Z: 25px;"></div>
-                            <div class="face right" style="--transform-Z: 25px;"></div>
-                            <div class="face top" style="--transform-Z: 25px;"></div>
-                            <div class="face bottom" style="--transform-Z: 25px;"></div>
-                        </div>
-                    </div>
-                </div>
-
                 <button id="update-templates-btn" onclick="loadDataAndProcess()" class="btn">Обновить</button>
 
                 <div id="templates-container"></div>
 
                 <h1 id="no-templates-msg" class="notification" style="display: none;">Шаблоны не были найдены. Создайте новый шаблон</h1>
-                <button id="create-template-btn" onclick="createNewTemplate()" class="btn" style="display: none;">Создать шаблон</button>
+                <button id="create-template-btn" class="btn" style="display: none;">Создать шаблон</button>
             </div>
 
             <div class="load-notification" id="load-notification">
-                <span class="close-btn" onclick="hideNotification()">✖<br></span>
+                <span class="close-btn" id="close-btn">✖<br></span>
                 Сайт загружается слишком медленно. Хотите загрузить облегченную версию?
-                <button onclick="loadLightVersion()">Да</button>
+                <button id="load-light-app-btn">Да</button>
             </div>
 
-            <div class="overlay" id="overlay"></div>
+            <div class="custom-notification" id="custom-notification">
+                <div class="custom-notification-content">
+                    <p id="info-custom-notification">Вы уверены, что хотите удалить файл?</p>
 
-            <div class="delete-notification" id="delete-notification">
-                <div class="delete-notification-content">
-                    <p id="info-delete-notification">Вы уверены, что хотите удалить файл?</p>
-
-                    <div class="loading-spinner" id="del-msg-loading-spinner">
-                        <div class="cube-container">
-                            <div class="cube" style="--transform-Z: -15px;">
-                                <div class="face front" style="--transform-Z: 15px;"></div>
-                                <div class="face back" style="--transform-Z: 15px;"></div>
-                                <div class="face left" style="--transform-Z: 15px;"></div>
-                                <div class="face right" style="--transform-Z: 15px;"></div>
-                                <div class="face top" style="--transform-Z: 15px;"></div>
-                                <div class="face bottom" style="--transform-Z: 15px;"></div>
-                            </div>
-                        </div>
+                    <div class="custom-notification-btn">
+                        <button  id="confirm-notification">Удалить</button>
+                        <button  id="cancel-notification">Отмена</button>
                     </div>
 
-                    <div class="delete-notification-btn">
-                        <button  id="confirm-delete" onclick="confirmDeleteNotification()">Удалить</button>
-                        <button  id="cancel-delete" onclick="cancelDeleteNotification()">Отмена</button>
-                    </div>
-
-                    <span class="close" id="close-notification" onclick="closeDeleteNotification()">&times;</span>
+                    <span class="close" id="close-notification">&times;</span>
                 </div>
             </div>
         </section>
